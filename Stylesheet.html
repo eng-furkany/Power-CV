@@ -1,0 +1,455 @@
+<style>
+/* ==========================================================================
+   Power CV Launch Plan Dashboard — Stylesheet
+   Renk kaynağı: Standartlar/tokens/colors.css (resmi ValeoDashboard paleti).
+   Durum rozeti + dark-mode + akışkan tipografi DESENLERİ Standartlar'dan
+   taşındı; hex'ler bu projenin kendi renkleriyle yeniden türetildi ve WCAG AA
+   (4.5:1) için elle doğrulandı (bkz. docs/TSD.md'deki not).
+   ========================================================================== */
+
+:root {
+  /* --- Marka (tokens/colors.css, resmi) --- */
+  --valeo-blue:  #041b3c;
+  --valeo-green: #76ff03;
+  --valeo-mid:   #0072ce;
+  --valeo-dark:  #003d9b;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* --- Spacing ölçeği (jenerik-desenler.md) --- */
+  --space-xs: 4px;  --space-sm: 8px;  --space-md: 12px;
+  --space-lg: 16px; --space-xl: 20px; --space-2xl: 24px;
+
+  /* --- Akışkan tipografi (jenerik-desenler.md, TaskTracker deseni) --- */
+  --fs-xs:   clamp(10.5px, .68rem + .12vw, 12px);
+  --fs-sm:   clamp(12px,   .75rem + .15vw, 13.5px);
+  --fs-base: clamp(13px,   .82rem + .18vw, 15px);
+  --fs-lg:   clamp(15px,   .9rem  + .35vw, 18px);
+  --fs-h2:   clamp(15px,   .95rem + .5vw,  19px);
+  --fs-h1:   clamp(20px,   1.1rem + 1vw,   28px);
+
+  /* --- Yüzey / metin (light) --- */
+  --bg:          #f1f5f9;
+  --card-bg:     #ffffff;
+  --surface-dim: #f1f5f9;
+  --sunken:      #eef2f6;
+  --text:        #1a2f3f;
+  --heading:     #041b3c;
+  --muted:       #616874;
+  --faint:       #9aaab8;
+  --border:      #e4eaf0;
+
+  /* --- Aksan metin (marka rengi metin olarak kullanılırken, WCAG doğrulanmış) --- */
+  --valeo-green-text: #2f6600;
+  --valeo-blue-text:  #003d9b;
+  --seg-active: var(--valeo-blue);
+
+  /* --- Durum --- */
+  --status-error:   #ef4444;
+  --status-warning: #f59e0b;
+  --status-success: #22c55e;
+
+  /* --- Durum rozeti çiftleri (soluk zemin + doygun yazı, renkler.md deseni) --- */
+  --st-ok-bg:   #e8f7d8; --st-ok-fg:   #2f6600;
+  --st-warn-bg: #fdf3e0; --st-warn-fg: #8a5200;
+  --st-err-bg:  #fcedeb; --st-err-fg:  #b03026;
+  --st-info-bg: #e5f0fb; --st-info-fg: #0a4a91;
+  --st-neut-bg: #eef1f4; --st-neut-fg: #526070;
+
+  --header-height: 56px;
+  --sidebar-closed: 64px;
+  --rail-w: 0px;
+}
+
+@media (prefers-color-scheme: dark) {
+  body:not(.dark-mode-explicit-light) { }
+}
+
+body.dark-mode {
+  --bg:          #0f172a;
+  --card-bg:     #1e293b;
+  --surface-dim: #16213b;
+  --sunken:      #16213b;
+  --text:        #f1f5f9;
+  --heading:     #f8fafc;
+  --muted:       #94a3b8;
+  --faint:       #64748b;
+  --border:      #334155;
+
+  --valeo-green-text: #76ff03;
+  --valeo-blue-text:  #5b9bd9;
+  --seg-active: var(--valeo-green);
+
+  --st-ok-bg:   #1c2a10; --st-ok-fg:   #a9e56a;
+  --st-warn-bg: #2a2113; --st-warn-fg: #e3ac4d;
+  --st-err-bg:  #2c1817; --st-err-fg:  #f19187;
+  --st-info-bg: #12243a; --st-info-fg: #7db4ee;
+  --st-neut-bg: #1e2634; --st-neut-fg: #94a3b8;
+}
+
+/* ==========================================================================
+   Reset / Erişilebilirlik kalıpları (jenerik-desenler.md madde 8)
+   ========================================================================== */
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; height: 100%;
+  background: var(--bg); color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: var(--fs-base);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, p { margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+img { max-width: 100%; }
+
+:focus-visible {
+  outline: 2px solid var(--valeo-green);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+.dark-header :focus-visible, .bn-item:focus-visible {
+  outline-color: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 200;
+  background: var(--valeo-blue); color: #fff;
+  padding: 10px 16px; border-radius: 0 0 8px 0;
+}
+.skip-link:focus { left: 0; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+/* ==========================================================================
+   Z-index katman tablosu (jenerik-desenler.md)
+   10 header · 20-30 sticky/dropdown · 45 scrim · 50 sidebar · 55 bottom-nav
+   · 60 drawer · 70 modal · 80 toast/savebar
+   ========================================================================== */
+
+/* ==========================================================================
+   Kabuk — Header / Sidebar / Bottom-nav / İçerik
+   ========================================================================== */
+
+#app-header {
+  position: fixed; top: 0; left: 0; right: 0; height: var(--header-height);
+  z-index: 10; display: flex; align-items: center; gap: var(--space-md);
+  padding: 0 var(--space-lg);
+  background: var(--valeo-blue); color: #fff;
+}
+.hdr-logo { height: 28px; object-fit: contain; flex: none; }
+.hdr-title { font-size: var(--fs-lg); font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hdr-spacer { flex: 1; }
+.hdr-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18);
+  color: #fff; border-radius: var(--radius-sm); padding: 6px 10px;
+  cursor: pointer; font-size: var(--fs-sm); font-weight: 500;
+}
+.hdr-btn:hover { background: rgba(255,255,255,0.18); }
+.hdr-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; }
+.hdr-btn-lbl { display: none; }
+@media (min-width: 560px) { .hdr-btn-lbl { display: inline; } }
+
+#sidebar {
+  position: fixed; top: var(--header-height); left: 0; bottom: 0;
+  width: var(--sidebar-closed); z-index: 50;
+  background: var(--valeo-blue);
+  display: flex; flex-direction: column; padding-top: var(--space-sm);
+}
+.sidebar-item {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; padding: 10px 2px; color: rgba(255,255,255,0.62);
+  cursor: pointer; border: none; background: none; width: 100%;
+}
+.sidebar-item svg { width: 20px; height: 20px; stroke: currentColor; fill: none; }
+.sidebar-item span { font-size: 9px; font-weight: 600; }
+.sidebar-item.active {
+  background: rgba(255,255,255,0.08); color: var(--valeo-green);
+  box-shadow: inset 3px 0 0 var(--valeo-green);
+}
+
+#main-content {
+  margin-left: var(--sidebar-closed); margin-top: var(--header-height);
+  padding: var(--space-lg); min-height: calc(100vh - var(--header-height));
+}
+
+#bottom-nav { display: none; }
+@media (max-width: 768px) {
+  #sidebar { display: none; }
+  #main-content { margin-left: 0; padding-bottom: 76px; }
+  #bottom-nav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 55;
+    display: flex; height: 56px;
+    background: var(--valeo-blue); border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .bn-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; color: rgba(255,255,255,0.62); font-size: 10px; font-weight: 600;
+    border: none; background: none; cursor: pointer;
+  }
+  .bn-item svg { width: 20px; height: 20px; stroke: currentColor; fill: none; }
+  .bn-item.active { color: var(--valeo-green); }
+}
+
+/* ==========================================================================
+   Sayfa başlığı
+   ========================================================================== */
+
+.page-header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); margin-bottom: var(--space-lg); flex-wrap: wrap; }
+.page-title { font-size: var(--fs-h1); font-weight: 700; color: var(--heading); }
+.page-subtitle { font-size: var(--fs-xs); color: var(--muted); margin-top: 2px; }
+
+/* ==========================================================================
+   Kart / KPI
+   ========================================================================== */
+
+.card {
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: var(--space-lg);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-md); margin-bottom: var(--space-lg); }
+.kpi-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-lg) var(--space-xl); }
+.kpi-label { font-size: var(--fs-xs); color: var(--muted); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+.kpi-value { font-size: 26px; font-weight: 700; line-height: 1; color: var(--heading); }
+.kpi-value.attn { color: var(--st-err-fg); }
+
+.chart-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--space-lg); margin-bottom: var(--space-lg); }
+@media (max-width: 900px) { .chart-grid { grid-template-columns: 1fr; } }
+.chart-canvas-wrap { position: relative; width: 100%; height: 220px; }
+.chart-canvas-wrap canvas { display: block; max-width: 100% !important; }
+.chart-no-data { text-align: center; padding: 40px 10px; color: var(--muted); font-size: var(--fs-sm); }
+.chart-error { text-align: center; padding: 24px 10px; color: var(--st-err-fg); font-size: var(--fs-sm); }
+.chart-error button { margin-top: 10px; }
+
+/* ==========================================================================
+   Buton
+   ========================================================================== */
+
+.btn { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: none; border-radius: var(--radius-sm); font-size: var(--fs-sm); font-weight: 500; cursor: pointer; }
+.btn-primary { background: var(--valeo-green); color: var(--valeo-blue); }
+.btn-secondary { background: var(--border); color: var(--text); }
+.btn-danger { background: var(--status-error); color: #fff; }
+.btn-outlined { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn:hover { box-shadow: inset 0 0 0 999px rgba(0,0,0,.08); }
+.btn:disabled { cursor: not-allowed; pointer-events: none; box-shadow: inset 0 0 0 999px rgba(0,0,0,.12); }
+.btn:disabled .btn-label { opacity: .38; }
+.btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; }
+
+/* ==========================================================================
+   Durum Rozeti (Status chip)
+   ========================================================================== */
+
+.status-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 20px; font-size: var(--fs-xs); font-weight: 700;
+  white-space: nowrap;
+}
+.status-chip svg { width: 12px; height: 12px; stroke: currentColor; fill: none; }
+.status-chip.st-ok   { background: var(--st-ok-bg);   color: var(--st-ok-fg); }
+.status-chip.st-warn { background: var(--st-warn-bg); color: var(--st-warn-fg); }
+.status-chip.st-err  { background: var(--st-err-bg);  color: var(--st-err-fg); }
+.status-chip.st-info { background: var(--st-info-bg); color: var(--st-info-fg); }
+.status-chip.st-neut { background: var(--st-neut-bg); color: var(--st-neut-fg); }
+
+/* ==========================================================================
+   Filtre Barı / FilterDrop
+   ========================================================================== */
+
+.filter-bar { display: flex; flex-wrap: wrap; gap: var(--space-sm); align-items: center; padding: var(--space-md) var(--space-lg); background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: var(--space-md); }
+.filter-group { display: flex; flex-direction: column; gap: 3px; }
+.filter-label { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; }
+.filter-search { min-width: 180px; flex: 1; }
+
+.fdr-wrap { position: relative; display: inline-block; }
+.fdr-btn {
+  display: flex; align-items: center; gap: 6px; cursor: pointer;
+  padding: 5px 10px; min-height: 32px;
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: var(--fs-sm); font-weight: 500; color: var(--text);
+}
+.fdr-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; }
+.fdr-btn.fdr-active { border-color: var(--valeo-mid); background: rgba(0,114,206,0.08); color: var(--valeo-blue-text); }
+.fdr-drop {
+  display: none; position: fixed; z-index: 30;
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-md);
+  min-width: 190px; max-width: 260px; box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+}
+.fdr-drop.fdr-open { display: block; }
+.fdr-search { width: 100%; box-sizing: border-box; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 6px 8px; font-size: var(--fs-xs); }
+.fdr-searchwrap { padding: 8px; }
+.fdr-list { max-height: 220px; overflow-y: auto; padding: 4px 0; }
+.fdr-item { display: flex; align-items: center; gap: 7px; padding: 6px 10px; font-size: var(--fs-sm); cursor: pointer; }
+.fdr-item:hover { background: var(--sunken); }
+.fdr-item input { margin: 0; cursor: pointer; }
+
+.active-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: var(--space-md); }
+.filter-chip {
+  background: rgba(0,114,206,0.1); border: 1px solid rgba(0,114,206,0.3);
+  border-radius: 20px; padding: 3px 10px; font-size: var(--fs-xs); color: var(--valeo-blue-text);
+  display: flex; align-items: center; gap: 4px;
+}
+.filter-chip-remove { cursor: pointer; font-weight: 700; background: none; border: none; color: inherit; font-size: inherit; padding: 0; }
+
+/* ==========================================================================
+   Veri Tablosu
+   ========================================================================== */
+
+.tbl-wrap { overflow-x: auto; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.dt { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+.dt thead th {
+  height: 48px; text-align: left; padding: 0 var(--space-md);
+  background: var(--sunken); color: var(--muted); font-weight: 700;
+  font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .02em;
+  position: sticky; top: 0; z-index: 20; border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.dt th.sortable { cursor: pointer; user-select: none; }
+.dt th.sortable:hover { color: var(--valeo-blue-text); }
+.dt th .sort-arrow { margin-left: 4px; opacity: .6; }
+.dt tbody td { height: 48px; padding: 0 var(--space-md); border-bottom: 1px solid var(--border); }
+.dt tbody tr:hover { background: var(--sunken); }
+.dt, .dt th, .dt td { font-variant-numeric: tabular-nums; }
+.dt td.cf-num, .dt th.cf-num { text-align: right; }
+.pn-link {
+  background: none; border: none; padding: 0; cursor: pointer;
+  color: var(--valeo-blue-text); font-weight: 700; text-decoration: underline;
+  font-size: inherit; font-family: inherit;
+}
+.pn-link:hover { color: var(--valeo-green-text); }
+.risk-flag { color: var(--st-err-fg); margin-left: 4px; vertical-align: -2px; }
+.risk-flag svg { width: 14px; height: 14px; stroke: currentColor; fill: none; }
+
+/* Mobil kart görünümü (veri-listeleme.md mobileCards() deseni) */
+@media (max-width: 768px) {
+  .dt.m-cards thead { display: none; }
+  .dt.m-cards, .dt.m-cards tbody, .dt.m-cards tr, .dt.m-cards td { display: block; width: 100%; }
+  .dt.m-cards tr { border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: var(--space-sm); padding: var(--space-sm) var(--space-md); }
+  .dt.m-cards td { border: none; height: auto; padding: 4px 0; display: flex; justify-content: space-between; gap: var(--space-sm); text-align: right; }
+  .dt.m-cards td.cf-num { text-align: right; }
+  .dt.m-cards td::before { content: attr(data-label); color: var(--muted); font-weight: 600; font-size: var(--fs-xs); text-align: left; }
+}
+
+/* ==========================================================================
+   Boş Ekran
+   ========================================================================== */
+
+.empty-state { text-align: center; padding: 56px 24px; }
+.empty-state svg { width: 34px; height: 34px; stroke: var(--faint); fill: none; }
+.empty-state h3 { font-size: var(--fs-base); font-weight: 700; color: var(--heading); margin-top: var(--space-sm); }
+.empty-state p { font-size: var(--fs-sm); color: var(--muted); margin-top: 4px; }
+.empty-state .btn { margin-top: var(--space-md); }
+
+/* ==========================================================================
+   Drawer — Detay Paneli
+   ========================================================================== */
+
+.drawer-scrim { position: fixed; inset: 0; z-index: 45; background: rgba(4,27,60,.35); backdrop-filter: blur(1px); display: none; }
+.drawer-scrim.open { display: block; }
+.drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 60;
+  max-width: min(520px, 94vw); width: 480px;
+  background: var(--card-bg); box-shadow: -14px 0 40px rgba(0,0,0,0.22);
+  display: none; flex-direction: column;
+}
+.drawer.open { display: flex; animation: sheetIn .22s ease-out; }
+@keyframes sheetIn { from { transform: translateX(24px); opacity: .4; } to { transform: translateX(0); opacity: 1; } }
+.drawer-hd { flex: none; display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-md) var(--space-lg); border-bottom: 1px solid var(--border); }
+.drawer-hd-title { font-size: var(--fs-lg); font-weight: 700; color: var(--heading); flex: 1; }
+.drawer-nav { display: flex; align-items: center; gap: 4px; }
+.drawer-nav button { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text); }
+.drawer-nav button:disabled { opacity: .35; cursor: not-allowed; }
+.drawer-nav button svg { width: 16px; height: 16px; stroke: currentColor; fill: none; }
+.drawer-nav-pos { font-size: var(--fs-xs); color: var(--muted); white-space: nowrap; }
+.drawer-close { background: none; border: none; cursor: pointer; color: var(--muted); width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); }
+.drawer-close:hover { background: var(--sunken); }
+.drawer-close svg { width: 18px; height: 18px; stroke: currentColor; fill: none; }
+.drawer-body { flex: 1; overflow-y: auto; padding: var(--space-md) var(--space-lg); }
+.drawer-sec { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; padding: var(--space-md) 0 6px; }
+
+.prop-row { display: flex; align-items: center; gap: var(--space-sm); padding: 8px 0; border-bottom: 1px solid var(--border); min-height: 40px; }
+.prop-icon { flex: none; width: 18px; height: 18px; color: var(--muted); }
+.prop-icon svg { width: 18px; height: 18px; stroke: currentColor; fill: none; }
+.prop-label { flex: 0 0 150px; font-size: var(--fs-sm); color: var(--muted); }
+.prop-value-wrap { flex: 1; min-width: 0; }
+.prop-static { font-size: var(--fs-sm); color: var(--text); word-break: break-word; }
+.prop-btn {
+  background: none; border: none; padding: 2px 4px; margin: -2px -4px;
+  border-radius: 4px; cursor: pointer; text-align: left; width: 100%;
+  display: flex; align-items: center; gap: 6px; font-size: var(--fs-sm); color: var(--text);
+}
+.prop-btn:hover { background: var(--sunken); }
+.prop-btn .edit-icon { opacity: 0; margin-left: auto; color: var(--muted); flex: none; }
+.prop-btn:hover .edit-icon { opacity: 1; }
+.prop-btn .edit-icon svg { width: 14px; height: 14px; stroke: currentColor; fill: none; }
+.prop-input {
+  width: 100%; box-sizing: border-box; height: 34px; padding: 0 10px;
+  border: 1.5px solid var(--valeo-mid); border-radius: 4px; font-size: var(--fs-sm);
+  background: var(--surface-dim); color: var(--text);
+}
+
+.milestone-list { display: flex; flex-direction: column; gap: 0; }
+.risk-banner {
+  display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+  border-radius: var(--radius-md); font-size: var(--fs-sm); font-weight: 600; margin-bottom: var(--space-md);
+}
+.risk-banner svg { width: 16px; height: 16px; stroke: currentColor; fill: none; flex: none; }
+
+/* ==========================================================================
+   Savebar / Toast / Undo
+   ========================================================================== */
+
+#savebar {
+  position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(12px);
+  z-index: 80; display: flex; align-items: center; gap: 8px; background: var(--card-bg);
+  border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(4,27,60,.16);
+  border-radius: 999px; padding: 8px 16px; font-size: var(--fs-sm); font-weight: 600; color: var(--text);
+  opacity: 0; pointer-events: none; transition: opacity .22s ease, transform .22s ease;
+}
+#savebar.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#savebar.err { color: var(--st-err-fg); border-color: var(--st-err-fg); }
+#savebar .spinner { margin: 0; }
+
+#toast-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 80; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
+.toast {
+  padding: 12px 16px; border-radius: 8px; font-size: var(--fs-sm); font-weight: 500; color: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18); max-width: 340px; word-break: break-word;
+  display: flex; align-items: center; gap: 10px;
+  animation: toast-in 0.3s ease;
+}
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.toast-info { background: var(--valeo-blue); }
+.toast-success { background: #1f7a34; }
+.toast-error { background: var(--status-error); }
+.toast-undo { background: rgba(255,255,255,0.18); border: none; color: #fff; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+
+/* ==========================================================================
+   Yükleniyor
+   ========================================================================== */
+
+.loading-overlay { display: flex; align-items: center; justify-content: center; padding: 40px; color: var(--muted); gap: 8px; }
+.spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--valeo-mid); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ==========================================================================
+   Yardımcılar
+   ========================================================================== */
+
+.hidden { display: none !important; }
+.text-muted { color: var(--muted); }
+</style>

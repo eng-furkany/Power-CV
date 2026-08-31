@@ -1,0 +1,1019 @@
+<script>
+/* ==========================================================================
+   Power CV Launch Plan Dashboard — istemci tarafı.
+   Desenler Standartlar reposundan (sidebar.md, koyu-mod.md, dil-yerellestirme.md,
+   veri-listeleme.md, bilesenler.md, detay-panel.md, grafikler.md) taşındı;
+   kaynak kod satır satır değil, davranış sözleşmesi kopyalandı.
+   ========================================================================== */
+
+// --------------------------------------------------------------------------
+// Lucide ikonları (inline, currentColor) — docs/ikonlar.md
+// --------------------------------------------------------------------------
+
+var ICON_PATHS = {
+  dashboard: '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+  list: '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
+  moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+  x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  chevronUp: '<polyline points="18 15 12 9 6 15"/>',
+  chevronDown: '<polyline points="6 9 12 15 18 9"/>',
+  search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+  filter: '<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>',
+  alertTriangle: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  checkCircle: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
+  xCircle: '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',
+  edit: '<path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/>',
+  undo: '<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>',
+  refresh: '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>',
+  refreshCw: '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>'
+};
+
+function icon(name, size) {
+  size = size || 20;
+  return '<svg viewBox="0 0 24 24" width="' + size + '" height="' + size + '" fill="none" ' +
+    'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+    (ICON_PATHS[name] || '') + '</svg>';
+}
+
+// --------------------------------------------------------------------------
+// TR/EN sözlük — dil-yerellestirme.md "Gerçek Bir Örnek" deseni,
+// bilinen 3 eksik kapatılmış: <html lang> güncellenir, sabit durum
+// kategorileri de kapsamda (STATUS_LEX), sayı/tarih biçimi dile göre değişir.
+// --------------------------------------------------------------------------
+
+var T = {
+  tr: {
+    appTitle: 'Power CV Launch Plan',
+    navDashboard: 'Dashboard', navListe: 'Parça Listesi',
+    theme: 'Tema', darkOn: 'Açık', darkOff: 'Koyu',
+    kpiTotalParts: 'Toplam Parça', kpiTotalVolume: 'Toplam Hacim', kpiTotalEur: 'Toplam EUR',
+    kpiLaunched: 'Launched', kpiRisk: 'Risk / Gecikme',
+    chartStatusTitle: 'Durum Dağılımı', chartProductTitle: 'Ürün Bazlı Hacim',
+    riskTableTitle: 'Risk / Gecikme Tablosu',
+    riskTableEmptyTitle: 'Risk yok', riskTableEmptySub: 'Şu an risk/gecikme rozetli bir kayıt bulunmuyor.',
+    retry: 'Tekrar dene', loadError: 'Bu veriler şu an alınamıyor.',
+    filterPlant: 'Plant', filterProduct: 'Product', filterStatus: 'Durum', filterAll: 'Tümü',
+    searchPlaceholder: 'P/N, Plant veya Product ara…',
+    clearFilters: 'Filtreyi temizle', activeFilters: 'Aktif filtreler',
+    listEmptyTitle: 'Kayıt bulunamadı', listEmptySub: 'Süzgece uyan bir parça yok.',
+    colPlant: 'Plant', colPn: 'P/N', colProduct: 'Product', colVolume: 'Volume', colOi: 'OI',
+    colStatus: 'Durum', colLaunch: 'Launch',
+    statusLaunched: 'Launched', statusPlanned: 'Planlı', statusDelay: 'Gecikme', statusRisk: 'Risk/Delay',
+    drawerTitle: 'Parça Detayı', drawerOpenedElsewhere: 'Farklı bir listeden açıldı',
+    drawerSecIdentity: 'Kimlik', drawerSecCommercial: 'Ticari', drawerSecMilestones: 'Kilometre Taşları',
+    fieldPlant: 'Plant', fieldProjectType: 'Project Type', fieldDiameter: 'Diameter', fieldPn: 'P/N',
+    fieldPnCompetitor: 'P/N Competitor', fieldProduct: 'Product',
+    fieldAttrPPCA: 'Attribute (PPCA)', fieldAttrDisc: 'Attribute (Disc)', fieldAttrRB: 'Attribute (RB)',
+    fieldVolume: 'Volume', fieldOi: 'OI', fieldCoveragePlus: 'Coverage +', fieldStatus: 'Status',
+    fieldEur: 'EUR (€)',
+    msSamplePurchase: 'Sample Purchase', msCompetitorAnalysis: 'Competitor Analysis',
+    msProductDefinition: 'Product Definition', msCommercialAgreement: 'Commercial Agreement',
+    msSampleProduction: 'Sample Production', msBenchTesting: 'Bench testing', msVehicleTest: 'Vehicle Test',
+    msCRD: 'CRD', launchSheet: 'Launch Sheet (tarih)',
+    riskBannerRisk: 'Bu parça risk/gecikme altında.', riskBannerDelay: 'Bu kilometre taşı hedeflenen çeyreği geçti.',
+    saving: 'Kaydediliyor…', saved: 'Kaydedildi', saveError: 'Kaydedilemedi — tekrar deneyin',
+    undo: 'Geri al', undoDone: 'Geri alındı', undoFailed: 'Geri alınamadı',
+    prefSaveError: 'Tercih kaydedilemedi — bu oturumda geçerli, kalıcı değil.',
+    loading: 'Yükleniyor…', close: 'Kapat', prev: 'Önceki kayıt', next: 'Sonraki kayıt',
+    updatedAt: 'Güncelleme',
+    langBtn: 'EN'
+  },
+  en: {
+    appTitle: 'Power CV Launch Plan',
+    navDashboard: 'Dashboard', navListe: 'Parts List',
+    theme: 'Theme', darkOn: 'Light', darkOff: 'Dark',
+    kpiTotalParts: 'Total Parts', kpiTotalVolume: 'Total Volume', kpiTotalEur: 'Total EUR',
+    kpiLaunched: 'Launched', kpiRisk: 'Risk / Delay',
+    chartStatusTitle: 'Status Breakdown', chartProductTitle: 'Volume by Product',
+    riskTableTitle: 'Risk / Delay Table',
+    riskTableEmptyTitle: 'No risk', riskTableEmptySub: 'No part currently carries a risk/delay flag.',
+    retry: 'Retry', loadError: 'These figures cannot be loaded right now.',
+    filterPlant: 'Plant', filterProduct: 'Product', filterStatus: 'Status', filterAll: 'All',
+    searchPlaceholder: 'Search P/N, Plant or Product…',
+    clearFilters: 'Clear filters', activeFilters: 'Active filters',
+    listEmptyTitle: 'No records', listEmptySub: 'No part matches the current filters.',
+    colPlant: 'Plant', colPn: 'P/N', colProduct: 'Product', colVolume: 'Volume', colOi: 'OI',
+    colStatus: 'Status', colLaunch: 'Launch',
+    statusLaunched: 'Launched', statusPlanned: 'Planned', statusDelay: 'Delay', statusRisk: 'Risk/Delay',
+    drawerTitle: 'Part Detail', drawerOpenedElsewhere: 'Opened from a different list',
+    drawerSecIdentity: 'Identity', drawerSecCommercial: 'Commercial', drawerSecMilestones: 'Milestones',
+    fieldPlant: 'Plant', fieldProjectType: 'Project Type', fieldDiameter: 'Diameter', fieldPn: 'P/N',
+    fieldPnCompetitor: 'P/N Competitor', fieldProduct: 'Product',
+    fieldAttrPPCA: 'Attribute (PPCA)', fieldAttrDisc: 'Attribute (Disc)', fieldAttrRB: 'Attribute (RB)',
+    fieldVolume: 'Volume', fieldOi: 'OI', fieldCoveragePlus: 'Coverage +', fieldStatus: 'Status',
+    fieldEur: 'EUR (€)',
+    msSamplePurchase: 'Sample Purchase', msCompetitorAnalysis: 'Competitor Analysis',
+    msProductDefinition: 'Product Definition', msCommercialAgreement: 'Commercial Agreement',
+    msSampleProduction: 'Sample Production', msBenchTesting: 'Bench testing', msVehicleTest: 'Vehicle Test',
+    msCRD: 'CRD', launchSheet: 'Launch Sheet (date)',
+    riskBannerRisk: 'This part is flagged risk/delay.', riskBannerDelay: 'This milestone is past its target quarter.',
+    saving: 'Saving…', saved: 'Saved', saveError: 'Not saved — try again',
+    undo: 'Undo', undoDone: 'Undone', undoFailed: 'Could not undo',
+    prefSaveError: 'Preference not saved — session only, not persisted.',
+    loading: 'Loading…', close: 'Close', prev: 'Previous record', next: 'Next record',
+    updatedAt: 'Updated',
+    langBtn: 'TR'
+  }
+};
+
+function t(key) { return (T[AppState.lang] && T[AppState.lang][key]) || key; }
+
+// Ham durum değerine dokunmadan yalnız GÖSTERİLEN metni çevirir (StatusLex deseni).
+var STATUS_LEX = {
+  'Done':          { tr: 'Tamam', en: 'Done' },
+  'Not Required':  { tr: 'Gerekmiyor', en: 'Not Required' },
+  'TBD':           { tr: 'TBD', en: 'TBD' },
+  'In Progress':   { tr: 'Devam Ediyor', en: 'In Progress' }
+};
+function lexLabel(raw) {
+  var s = String(raw == null ? '' : raw).trim();
+  if (STATUS_LEX[s]) return STATUS_LEX[s][AppState.lang] || s;
+  return s; // çeyrek string'i ("Q1/2027") gibi dile bağlı olmayan değerler aynen kalır
+}
+
+// --------------------------------------------------------------------------
+// Uygulama durumu
+// --------------------------------------------------------------------------
+
+var AppState = {
+  darkMode: false,
+  lang: 'tr',
+  currentPage: 'dashboard',
+  dashboard: null,
+  liste: { rows: null, columns: null, filters: {}, search: '', sort: { key: null, dir: 1 } },
+  drawer: { open: false, pn: null, listPns: [], record: null, columns: null, milestoneKeys: [], suggestions: [] },
+  charts: {}
+};
+
+// --------------------------------------------------------------------------
+// google.script.run sözleşmesi — HER ZAMAN success VE failure denetlenir
+// (veri-listeleme.md).
+// --------------------------------------------------------------------------
+
+function gsCall(fnName, args, onOk, onErr) {
+  var runner = google.script.run
+    .withSuccessHandler(function (result) {
+      if (!result || result.error) { onErr && onErr((result && result.error) || 'Bilinmeyen hata'); return; }
+      onOk && onOk(result);
+    })
+    .withFailureHandler(function (err) { onErr && onErr(err && err.message ? err.message : String(err)); });
+  runner[fnName].apply(runner, args || []);
+}
+
+// --------------------------------------------------------------------------
+// Boot
+// --------------------------------------------------------------------------
+
+document.addEventListener('DOMContentLoaded', function () {
+  wireShell();
+  gsCall('getUserPrefs', [], function (prefs) {
+    var savedDark = prefs.darkMode;
+    applyDarkMode(savedDark === 'true' ? true : (savedDark === 'false' ? false : osPrefersDark()));
+    setLanguage(prefs.lang === 'en' ? 'en' : 'tr', /*persist*/ false);
+    navigateTo('dashboard');
+  }, function () {
+    applyDarkMode(osPrefersDark());
+    setLanguage('tr', false);
+    navigateTo('dashboard');
+  });
+});
+
+function osPrefersDark() {
+  try { return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches); }
+  catch (e) { return false; }
+}
+
+function wireShell() {
+  document.getElementById('dark-mode-btn').addEventListener('click', toggleDarkMode);
+  document.getElementById('lang-btn').addEventListener('click', toggleLanguage);
+  document.querySelectorAll('[data-nav]').forEach(function (el) {
+    el.addEventListener('click', function () { navigateTo(el.getAttribute('data-nav')); });
+  });
+  document.getElementById('drawer-scrim').addEventListener('click', closeDrawer);
+  document.getElementById('drawer-close').addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape' && AppState.drawer.open) closeDrawer();
+  });
+  document.addEventListener('click', function (ev) {
+    if (!ev.target.closest('.fdr-wrap')) closeAllFilterDrops();
+  });
+}
+
+// --------------------------------------------------------------------------
+// Dark mode — koyu-mod.md: tek uygulama noktası applyDarkMode(on)
+// --------------------------------------------------------------------------
+
+function applyDarkMode(on) {
+  AppState.darkMode = !!on;
+  document.body.classList.toggle('dark-mode', AppState.darkMode);
+  var btn = document.getElementById('dark-mode-btn');
+  if (!btn) return;
+  btn.innerHTML = icon(AppState.darkMode ? 'sun' : 'moon', 16) +
+    '<span class="hdr-btn-lbl">' + (AppState.darkMode ? t('darkOn') : t('darkOff')) + '</span>';
+  btn.setAttribute('aria-label', t('theme'));
+  refreshChartsForTheme();
+}
+
+function toggleDarkMode() {
+  applyDarkMode(!AppState.darkMode);
+  gsCall('saveUserPref', ['darkMode', String(AppState.darkMode)], function (ok) {
+    if (ok === false) showToast(t('prefSaveError'), 'error');
+  }, function () { showToast(t('prefSaveError'), 'error'); });
+}
+
+// --------------------------------------------------------------------------
+// Dil — dil-yerellestirme.md "Gerçek Bir Örnek" deseni + 3 eksik kapatıldı
+// --------------------------------------------------------------------------
+
+function setLanguage(lang, persist) {
+  AppState.lang = (lang === 'en') ? 'en' : 'tr';
+  document.documentElement.lang = AppState.lang; // Eksik #1 kapatıldı
+  applyStaticTranslations();
+  var btn = document.getElementById('lang-btn');
+  if (btn) btn.innerHTML = '<span class="hdr-btn-lbl">' + t('langBtn') + '</span>' +
+    '<span aria-hidden="true">' + (AppState.lang === 'tr' ? 'TR' : 'EN') + '</span>';
+  if (persist !== false) {
+    gsCall('saveUserPref', ['lang', AppState.lang], function (ok) {
+      if (ok === false) showToast(t('prefSaveError'), 'error');
+    }, function () { showToast(t('prefSaveError'), 'error'); });
+  }
+  // Sayfa zaten yüklenmişse yeniden çiz — sabit metinlerin YANI SIRA dinamik
+  // içerik de (KPI etiketleri, tablo başlıkları, rozetler) t()'den geçmeli
+  // (Eksik #2 kapatıldı).
+  if (AppState.currentPage === 'dashboard' && AppState.dashboard) renderDashboard();
+  if (AppState.currentPage === 'liste' && AppState.liste.rows) renderListe();
+  if (AppState.drawer.open) renderDrawer();
+}
+
+function toggleLanguage() { setLanguage(AppState.lang === 'tr' ? 'en' : 'tr', true); }
+
+function applyStaticTranslations() {
+  document.querySelectorAll('[data-i18n]').forEach(function (el) {
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+  document.getElementById('app-title').textContent = t('appTitle');
+}
+
+// Eksik #3 kapatıldı: sayı/tarih biçimi dile göre değişir.
+function localeTag() { return AppState.lang === 'tr' ? 'tr-TR' : 'en-US'; }
+function fmtNum(n) { return Number(n || 0).toLocaleString(localeTag()); }
+function fmtEur(n) {
+  return Number(n || 0).toLocaleString(localeTag(), { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' €';
+}
+function fmtDate(iso) {
+  if (!iso) return '—';
+  var d = new Date(iso);
+  if (isNaN(d.getTime())) return String(iso);
+  return d.toLocaleDateString(localeTag());
+}
+
+// --------------------------------------------------------------------------
+// Routing
+// --------------------------------------------------------------------------
+
+function navigateTo(page, opts) {
+  AppState.currentPage = page;
+  document.querySelectorAll('.page-view').forEach(function (el) { el.classList.add('hidden'); });
+  var view = document.getElementById('view-' + page);
+  if (view) view.classList.remove('hidden');
+  document.querySelectorAll('[data-nav]').forEach(function (el) {
+    el.classList.toggle('active', el.getAttribute('data-nav') === page);
+  });
+  document.getElementById('hdr-page-title').textContent = (page === 'dashboard') ? t('navDashboard') : t('navListe');
+
+  if (page === 'dashboard') loadDashboard(false);
+  if (page === 'liste') {
+    if (opts && opts.statusCategory) {
+      AppState.liste.filters.statusCategory = [opts.statusCategory];
+    }
+    loadListe(false);
+  }
+}
+
+// --------------------------------------------------------------------------
+// Dashboard
+// --------------------------------------------------------------------------
+
+function loadDashboard(force) {
+  if (AppState.dashboard && !force) { renderDashboard(); return; }
+  var root = document.getElementById('dashboard-body');
+  root.innerHTML = '<div class="loading-overlay"><span class="spinner"></span>' + t('loading') + '</div>';
+  gsCall('getDashboardData', [], function (data) {
+    AppState.dashboard = data;
+    renderDashboard();
+  }, function (err) {
+    root.innerHTML = '<div class="chart-error">' + icon('alertTriangle', 22) + '<div>' + t('loadError') + '</div>' +
+      '<button class="btn btn-outlined" onclick="loadDashboard(true)">' + icon('refreshCw', 14) + ' ' + t('retry') + '</button></div>';
+  });
+}
+
+function riskChip(level, isLaunched) {
+  if (isLaunched) return statusChipHtml('st-ok', 'checkCircle', t('statusLaunched'));
+  if (level === 'risk') return statusChipHtml('st-err', 'xCircle', t('statusRisk'));
+  if (level === 'gecikme') return statusChipHtml('st-warn', 'alertTriangle', t('statusDelay'));
+  return statusChipHtml('st-info', null, t('statusPlanned'));
+}
+function statusChipHtml(cls, iconName, label) {
+  return '<span class="status-chip ' + cls + '">' + (iconName ? icon(iconName, 12) : '') + label + '</span>';
+}
+
+function renderDashboard() {
+  var d = AppState.dashboard;
+  var root = document.getElementById('dashboard-body');
+  if (!d) return;
+  var k = d.kpis;
+  var html = '';
+  html += '<div class="kpi-row">' +
+    kpiCard(t('kpiTotalParts'), fmtNum(k.totalParts)) +
+    kpiCard(t('kpiTotalVolume'), fmtNum(k.totalVolume)) +
+    kpiCard(t('kpiTotalEur'), fmtEur(k.totalEur)) +
+    kpiCard(t('kpiLaunched'), fmtNum(k.launchedCount)) +
+    kpiCard(t('kpiRisk'), fmtNum(k.riskCount), k.riskCount > 0) +
+    '</div>';
+
+  html += '<div class="chart-grid">' +
+    '<div class="card"><h2 class="page-subtitle" style="font-size:var(--fs-lg);color:var(--heading);margin-bottom:8px;">' + t('chartStatusTitle') + '</h2>' +
+    '<div class="chart-canvas-wrap"><canvas id="chart-status"></canvas></div></div>' +
+    '<div class="card"><h2 class="page-subtitle" style="font-size:var(--fs-lg);color:var(--heading);margin-bottom:8px;">' + t('chartProductTitle') + '</h2>' +
+    '<div class="chart-canvas-wrap"><canvas id="chart-product"></canvas></div></div>' +
+    '</div>';
+
+  html += '<div class="card"><h2 class="page-subtitle" style="font-size:var(--fs-lg);color:var(--heading);margin-bottom:8px;">' + t('riskTableTitle') + '</h2>';
+  if (!d.riskRows.length) {
+    html += emptyStateHtml('checkCircle', t('riskTableEmptyTitle'), t('riskTableEmptySub'), '');
+  } else {
+    html += '<div class="tbl-wrap"><table class="dt"><thead><tr>' +
+      '<th>' + t('colPn') + '</th><th>' + t('colPlant') + '</th><th>' + t('colProduct') + '</th>' +
+      '<th class="cf-num">' + t('colVolume') + '</th><th>' + t('colStatus') + '</th></tr></thead><tbody>';
+    d.riskRows.forEach(function (r) {
+      html += '<tr>' +
+        '<td><button class="pn-link" data-open-pn="' + escAttr(r.pn) + '" data-open-scope="risk">' + escHtml(r.pn) + '</button></td>' +
+        '<td>' + escHtml(r.plant) + '</td><td>' + escHtml(r.product) + '</td>' +
+        '<td class="cf-num">' + fmtNum(r.volume) + '</td>' +
+        '<td>' + riskChip(r.riskLevel, /launched/i.test(String(r.status || ''))) + '</td>' +
+        '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+  html += '</div>';
+
+  root.innerHTML = html;
+  root.querySelectorAll('[data-open-pn]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      openDrawer(btn.getAttribute('data-open-pn'), d.riskRows.map(function (r) { return r.pn; }));
+    });
+  });
+
+  drawStatusChart(d.statusCounts);
+  drawProductChart(d.productVolume);
+}
+
+function kpiCard(label, value, attn) {
+  return '<div class="kpi-card"><div class="kpi-label">' + label + '</div>' +
+    '<div class="kpi-value' + (attn ? ' attn' : '') + '">' + value + '</div></div>';
+}
+
+function emptyStateHtml(iconName, title, sub, btnsHtml) {
+  return '<div class="empty-state">' + icon(iconName, 34) +
+    '<h3>' + title + '</h3>' + (sub ? '<p>' + sub + '</p>' : '') +
+    (btnsHtml ? '<div>' + btnsHtml + '</div>' : '') + '</div>';
+}
+
+// --------------------------------------------------------------------------
+// Grafikler — grafikler.md (Chart.js, sabit yükseklikli kap, PALETTE, onClick=filtre)
+// --------------------------------------------------------------------------
+
+var CHART_PALETTE = ['#0072ce', '#76ff03', '#f59e0b', '#8b5cf6', '#ef4444', '#041b3c', '#06b6d4', '#ec4899'];
+var STATUS_COLOR = { 'Launched': '#22c55e', 'Planlı': '#0072ce', 'Gecikme': '#f59e0b', 'Risk/Delay': '#ef4444' };
+
+function drawStatusChart(statusCounts) {
+  var canvas = document.getElementById('chart-status');
+  var wrap = canvas.closest('.chart-canvas-wrap');
+  var labels = Object.keys(statusCounts || {});
+  if (!labels.length) { showChartNoData(wrap, canvas); return; }
+  showCanvas(wrap, canvas);
+  var values = labels.map(function (l) { return statusCounts[l]; });
+  var colors = labels.map(function (l) { return STATUS_COLOR[l] || CHART_PALETTE[labels.indexOf(l) % CHART_PALETTE.length]; });
+  var localizedLabels = labels.map(function (l) {
+    if (l === 'Launched') return t('statusLaunched');
+    if (l === 'Planlı') return t('statusPlanned');
+    if (l === 'Gecikme') return t('statusDelay');
+    if (l === 'Risk/Delay') return t('statusRisk');
+    return l;
+  });
+  if (AppState.charts.status) AppState.charts.status.destroy();
+  AppState.charts.status = new Chart(canvas.getContext('2d'), {
+    type: 'doughnut',
+    data: { labels: localizedLabels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 2, borderColor: cssVar('--card-bg') }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'right', labels: { color: cssVar('--text'), boxWidth: 12, font: { size: 11 } } } },
+      onClick: function (evt, els) {
+        if (!els.length) return;
+        var rawLabel = labels[els[0].index];
+        navigateTo('liste', { statusCategory: rawLabel });
+      }
+    }
+  });
+}
+
+function drawProductChart(productVolume) {
+  var canvas = document.getElementById('chart-product');
+  var wrap = canvas.closest('.chart-canvas-wrap');
+  var labels = Object.keys(productVolume || {});
+  if (!labels.length) { showChartNoData(wrap, canvas); return; }
+  showCanvas(wrap, canvas);
+  var values = labels.map(function (l) { return productVolume[l]; });
+  if (AppState.charts.product) AppState.charts.product.destroy();
+  AppState.charts.product = new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    data: { labels: labels, datasets: [{ data: values, backgroundColor: CHART_PALETTE[0] }] },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: cssVar('--muted'), font: { size: 9 } }, grid: { color: 'rgba(148,163,184,0.15)' } },
+        y: { ticks: { color: cssVar('--muted'), font: { size: 9 } }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+function showChartNoData(wrap, canvas) {
+  canvas.style.display = 'none';
+  var msg = wrap.querySelector('.chart-no-data');
+  if (!msg) { msg = document.createElement('div'); msg.className = 'chart-no-data'; wrap.appendChild(msg); }
+  msg.textContent = t('listEmptySub');
+}
+function showCanvas(wrap, canvas) {
+  canvas.style.display = 'block';
+  var msg = wrap.querySelector('.chart-no-data');
+  if (msg) msg.remove();
+}
+function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || getComputedStyle(document.body).getPropertyValue(name).trim(); }
+function refreshChartsForTheme() {
+  if (AppState.dashboard) {
+    if (AppState.charts.status) drawStatusChart(AppState.dashboard.statusCounts);
+    if (AppState.charts.product) drawProductChart(AppState.dashboard.productVolume);
+  }
+}
+
+// --------------------------------------------------------------------------
+// Parça Listesi — filtre/sıralama katmanı (ColFilter-lite, veri-listeleme.md)
+// 1000 satırın altındaki bu ölçekte parçalı çizim (chunked render) bilerek
+// atlandı — mvp-akisi.md'nin orantılı mühendislik ilkesi.
+// --------------------------------------------------------------------------
+
+var VISIBLE_COLS = ['plant', 'pn', 'product', 'volume', 'oi', 'status', 'launchSheet'];
+var FILTERABLE = ['plant', 'product', 'statusCategory'];
+
+function loadListe(force) {
+  if (AppState.liste.rows && !force) { renderListe(); return; }
+  var root = document.getElementById('liste-body');
+  root.innerHTML = '<div class="loading-overlay"><span class="spinner"></span>' + t('loading') + '</div>';
+  gsCall('getParcaListesi', [], function (data) {
+    data.rows.forEach(function (r) {
+      var launched = /launched/i.test(String(r.status || ''));
+      r.statusCategory = launched ? 'Launched' : (r.riskLevel === 'risk' ? 'Risk/Delay' : (r.riskLevel === 'gecikme' ? 'Gecikme' : 'Planlı'));
+    });
+    AppState.liste.rows = data.rows;
+    AppState.liste.columns = data.columns;
+    renderListe();
+  }, function (err) {
+    root.innerHTML = '<div class="chart-error">' + icon('alertTriangle', 22) + '<div>' + t('loadError') + '</div>' +
+      '<button class="btn btn-outlined" onclick="loadListe(true)">' + icon('refreshCw', 14) + ' ' + t('retry') + '</button></div>';
+  });
+}
+
+function applyListeFilters() {
+  var rows = AppState.liste.rows || [];
+  var f = AppState.liste.filters;
+  var q = _norm(AppState.liste.search);
+  var out = rows.filter(function (r) {
+    for (var key in f) {
+      if (f[key] && f[key].length && f[key].indexOf(String(r[key])) === -1) return false;
+    }
+    if (q) {
+      var hay = _norm([r.pn, r.plant, r.product].join(' '));
+      if (hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+  var s = AppState.liste.sort;
+  if (s.key) {
+    out.sort(function (a, b) {
+      var av = a[s.key], bv = b[s.key];
+      var an = parseFloat(av), bn = parseFloat(bv);
+      var cmp = (!isNaN(an) && !isNaN(bn)) ? (an - bn) : String(av || '').localeCompare(String(bv || ''));
+      return cmp * s.dir;
+    });
+  }
+  return out;
+}
+
+// Türkçe karakter-duyarsız normalize (dil-yerellestirme.md)
+function _norm(s) {
+  return String(s == null ? '' : s)
+    .replace(/[ıİ]/g, 'i').replace(/[şŞ]/g, 's').replace(/[ğĞ]/g, 'g')
+    .replace(/[üÜ]/g, 'u').replace(/[öÖ]/g, 'o').replace(/[çÇ]/g, 'c')
+    .toLowerCase();
+}
+
+function renderListe() {
+  var root = document.getElementById('liste-body');
+  if (!AppState.liste.rows) return;
+  var filtered = applyListeFilters();
+
+  var html = renderFilterBar();
+  html += renderActiveChips();
+
+  if (!filtered.length) {
+    html += emptyStateHtml('search', t('listEmptyTitle'), t('listEmptySub'),
+      '<button class="btn btn-outlined" onclick="clearListeFilters()">' + t('clearFilters') + '</button>');
+  } else {
+    html += '<div class="tbl-wrap"><table class="dt m-cards" id="liste-table"><thead><tr>';
+    VISIBLE_COLS.forEach(function (key) {
+      var numeric = (key === 'volume' || key === 'oi');
+      var label = colLabel(key);
+      var sortIndicator = (AppState.liste.sort.key === key) ? (AppState.liste.sort.dir === 1 ? icon('chevronDown', 11) : icon('chevronUp', 11)) : '';
+      html += '<th class="sortable' + (numeric ? ' cf-num' : '') + '" data-sort="' + key + '">' + label + ' <span class="sort-arrow">' + sortIndicator + '</span></th>';
+    });
+    html += '</tr></thead><tbody>';
+    filtered.forEach(function (r) {
+      html += '<tr>';
+      VISIBLE_COLS.forEach(function (key) {
+        var numeric = (key === 'volume' || key === 'oi');
+        var label = colLabel(key);
+        var cell;
+        if (key === 'pn') {
+          cell = '<button class="pn-link" data-open-pn="' + escAttr(r.pn) + '">' + escHtml(r.pn) + '</button>' +
+            (r.riskLevel !== 'ontrack' ? '<span class="risk-flag" title="' + (r.riskLevel === 'risk' ? t('statusRisk') : t('statusDelay')) + '">' + icon('alertTriangle', 14) + '</span>' : '');
+        } else if (key === 'status') {
+          cell = riskChip(r.riskLevel, r.statusCategory === 'Launched');
+        } else if (key === 'launchSheet') {
+          cell = fmtDate(r.launchSheet);
+        } else if (numeric) {
+          cell = fmtNum(r[key]);
+        } else {
+          cell = escHtml(r[key]);
+        }
+        html += '<td class="' + (numeric ? 'cf-num' : '') + '" data-label="' + escAttr(label) + '">' + cell + '</td>';
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+
+  root.innerHTML = html;
+  wireListeInteractions(filtered);
+}
+
+function colLabel(key) {
+  var map = { plant: 'colPlant', pn: 'colPn', product: 'colProduct', volume: 'colVolume', oi: 'colOi', status: 'colStatus', launchSheet: 'colLaunch' };
+  return t(map[key] || key);
+}
+
+function renderFilterBar() {
+  var html = '<div class="filter-bar">';
+  FILTERABLE.forEach(function (key) {
+    var labelKey = key === 'plant' ? 'filterPlant' : (key === 'product' ? 'filterProduct' : 'filterStatus');
+    var active = AppState.liste.filters[key] && AppState.liste.filters[key].length;
+    html += '<div class="filter-group"><span class="filter-label">' + t(labelKey) + '</span>' +
+      '<div class="fdr-wrap"><button class="fdr-btn' + (active ? ' fdr-active' : '') + '" data-fdr="' + key + '">' +
+      icon('filter', 14) + t(labelKey) + (active ? ' (' + AppState.liste.filters[key].length + ')' : '') + '</button>' +
+      '<div class="fdr-drop" id="fdr-' + key + '"></div></div></div>';
+  });
+  html += '<div class="filter-group filter-search"><span class="filter-label">' + icon('search', 12) + '</span>' +
+    '<input class="fdr-search" id="liste-search" type="search" placeholder="' + t('searchPlaceholder') + '" value="' + escAttr(AppState.liste.search) + '" aria-label="' + t('searchPlaceholder') + '"></div>';
+  html += '</div>';
+  return html;
+}
+
+function renderActiveChips() {
+  var f = AppState.liste.filters;
+  var chips = [];
+  Object.keys(f).forEach(function (key) {
+    (f[key] || []).forEach(function (v) {
+      chips.push({ key: key, val: v });
+    });
+  });
+  if (!chips.length) return '';
+  var html = '<div class="active-filters">';
+  chips.forEach(function (c) {
+    html += '<span class="filter-chip">' + escHtml(c.val) +
+      '<button class="filter-chip-remove" data-chip-key="' + c.key + '" data-chip-val="' + escAttr(c.val) + '" aria-label="' + t('clearFilters') + '">' + icon('x', 11) + '</button></span>';
+  });
+  html += '<button class="btn btn-text" style="font-size:var(--fs-xs);padding:2px 6px;" onclick="clearListeFilters()">' + t('clearFilters') + '</button>';
+  html += '</div>';
+  return html;
+}
+
+function clearListeFilters() {
+  AppState.liste.filters = {};
+  AppState.liste.search = '';
+  renderListe();
+}
+
+function wireListeInteractions(filteredRows) {
+  document.querySelectorAll('[data-sort]').forEach(function (th) {
+    th.addEventListener('click', function () {
+      var key = th.getAttribute('data-sort');
+      var s = AppState.liste.sort;
+      s.dir = (s.key === key) ? -s.dir : 1;
+      s.key = key;
+      renderListe();
+    });
+  });
+  document.querySelectorAll('[data-open-pn]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      openDrawer(btn.getAttribute('data-open-pn'), filteredRows.map(function (r) { return r.pn; }));
+    });
+  });
+  document.querySelectorAll('[data-chip-key]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var key = btn.getAttribute('data-chip-key'), val = btn.getAttribute('data-chip-val');
+      var arr = AppState.liste.filters[key] || [];
+      AppState.liste.filters[key] = arr.filter(function (v) { return v !== val; });
+      renderListe();
+    });
+  });
+  document.querySelectorAll('[data-fdr]').forEach(function (btn) {
+    btn.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      toggleFilterDrop(btn.getAttribute('data-fdr'), btn);
+    });
+  });
+  var search = document.getElementById('liste-search');
+  if (search) {
+    search.addEventListener('input', function () {
+      AppState.liste.search = search.value;
+      var pos = search.selectionStart;
+      renderListe();
+      var again = document.getElementById('liste-search');
+      if (again) { again.focus(); again.setSelectionRange(pos, pos); }
+    });
+  }
+}
+
+function toggleFilterDrop(key, btnEl) {
+  var isOpen = btnEl.classList.contains('fdr-active-open');
+  closeAllFilterDrops();
+  if (isOpen) return;
+  var drop = document.getElementById('fdr-' + key);
+  var rect = btnEl.getBoundingClientRect();
+  drop.style.left = rect.left + 'px';
+  drop.style.top = (rect.bottom + 4) + 'px';
+  drop.innerHTML = renderFilterDropList(key);
+  drop.classList.add('fdr-open');
+  btnEl.classList.add('fdr-active-open');
+  wireFilterDropList(key, drop);
+}
+
+function closeAllFilterDrops() {
+  document.querySelectorAll('.fdr-drop').forEach(function (d) { d.classList.remove('fdr-open'); });
+  document.querySelectorAll('.fdr-btn').forEach(function (b) { b.classList.remove('fdr-active-open'); });
+}
+
+function uniqueValuesFor(key) {
+  var rows = AppState.liste.rows || [];
+  var seen = {}; var out = [];
+  rows.forEach(function (r) {
+    var v = String(r[key] == null ? '' : r[key]);
+    if (v && !seen[v]) { seen[v] = true; out.push(v); }
+  });
+  out.sort();
+  return out;
+}
+
+function renderFilterDropList(key) {
+  var values = uniqueValuesFor(key);
+  var selected = AppState.liste.filters[key] || [];
+  var isStatusCat = (key === 'statusCategory');
+  var html = '<div class="fdr-searchwrap"><input class="fdr-search" type="search" placeholder="' + t('searchPlaceholder') + '" data-fdr-search="' + key + '"></div><div class="fdr-list">';
+  values.forEach(function (v) {
+    var label = isStatusCat ? (v === 'Launched' ? t('statusLaunched') : v === 'Planlı' ? t('statusPlanned') : v === 'Gecikme' ? t('statusDelay') : t('statusRisk')) : v;
+    var id = 'fdr-' + key + '-' + btoa(unescape(encodeURIComponent(v))).replace(/[^a-zA-Z0-9]/g, '');
+    html += '<label class="fdr-item" data-fdr-row="' + escAttr(v.toLowerCase()) + '"><input type="checkbox" id="' + id + '" value="' + escAttr(v) + '"' + (selected.indexOf(v) > -1 ? ' checked' : '') + '> ' + escHtml(label) + '</label>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function wireFilterDropList(key, drop) {
+  drop.querySelectorAll('input[type=checkbox]').forEach(function (cb) {
+    cb.addEventListener('change', function () {
+      var arr = AppState.liste.filters[key] || [];
+      if (cb.checked) arr.push(cb.value); else arr = arr.filter(function (v) { return v !== cb.value; });
+      AppState.liste.filters[key] = arr;
+      renderListe();
+      // Yeniden çizimden sonra aynı panel açık kalsın.
+      var btn = document.querySelector('[data-fdr="' + key + '"]');
+      if (btn) toggleFilterDrop(key, btn);
+    });
+  });
+  var searchInput = drop.querySelector('[data-fdr-search]');
+  if (searchInput) {
+    searchInput.addEventListener('input', function () {
+      var q = _norm(searchInput.value);
+      drop.querySelectorAll('[data-fdr-row]').forEach(function (row) {
+        row.style.display = _norm(row.getAttribute('data-fdr-row')).indexOf(q) > -1 ? '' : 'none';
+      });
+    });
+  }
+}
+
+// --------------------------------------------------------------------------
+// Detay Paneli (Drawer) — detay-panel.md
+// --------------------------------------------------------------------------
+
+function openDrawer(pn, listPns) {
+  AppState.drawer.open = true;
+  AppState.drawer.pn = pn;
+  AppState.drawer.listPns = listPns || [];
+  document.getElementById('drawer-scrim').classList.add('open');
+  document.getElementById('drawer').classList.add('open');
+  loadDrawerRecord(pn);
+}
+
+function closeDrawer() {
+  AppState.drawer.open = false;
+  document.getElementById('drawer-scrim').classList.remove('open');
+  document.getElementById('drawer').classList.remove('open');
+}
+
+function loadDrawerRecord(pn) {
+  var body = document.getElementById('drawer-body');
+  body.innerHTML = '<div class="loading-overlay"><span class="spinner"></span>' + t('loading') + '</div>';
+  gsCall('getParcaDetay', [pn], function (data) {
+    AppState.drawer.record = data.record;
+    AppState.drawer.columns = data.columns;
+    AppState.drawer.milestoneKeys = data.milestoneKeys;
+    AppState.drawer.suggestions = data.milestoneSuggestions;
+    renderDrawer();
+  }, function (err) {
+    body.innerHTML = '<div class="chart-error">' + icon('alertTriangle', 22) + '<div>' + t('loadError') + '</div>' +
+      '<button class="btn btn-outlined" onclick="loadDrawerRecord(\'' + pn.replace(/'/g, "\\'") + '\')">' + icon('refreshCw', 14) + ' ' + t('retry') + '</button></div>';
+  });
+}
+
+function drawerColByKey(key) {
+  var cols = AppState.drawer.columns || [];
+  for (var i = 0; i < cols.length; i++) if (cols[i].key === key) return cols[i];
+  return null;
+}
+
+function renderDrawer() {
+  var rec = AppState.drawer.record;
+  if (!rec) return;
+  document.getElementById('drawer-hd-title').textContent = t('drawerTitle') + ' — ' + rec.pn;
+
+  // Önceki/sonraki gezinme — panel açıldığı listenin bir üyesiyse.
+  var pos = AppState.drawer.listPns.indexOf(rec.pn);
+  var navHtml;
+  if (pos < 0) {
+    navHtml = '<span class="drawer-nav-pos">' + t('drawerOpenedElsewhere') + '</span>';
+  } else {
+    navHtml =
+      '<button data-step="-1" ' + (pos <= 0 ? 'disabled' : '') + ' aria-label="' + t('prev') + '">' + icon('chevronUp', 16) + '</button>' +
+      '<span class="drawer-nav-pos">' + (pos + 1) + ' / ' + AppState.drawer.listPns.length + '</span>' +
+      '<button data-step="1" ' + (pos >= AppState.drawer.listPns.length - 1 ? 'disabled' : '') + ' aria-label="' + t('next') + '">' + icon('chevronDown', 16) + '</button>';
+  }
+  document.getElementById('drawer-nav').innerHTML = navHtml;
+  document.querySelectorAll('#drawer-nav [data-step]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var newPos = pos + parseInt(b.getAttribute('data-step'), 10);
+      var newPn = AppState.drawer.listPns[newPos];
+      if (newPn) { AppState.drawer.pn = newPn; loadDrawerRecord(newPn); }
+    });
+  });
+
+  var body = document.getElementById('drawer-body');
+  var html = '';
+
+  if (rec.riskLevel === 'risk' || rec.riskLevel === 'gecikme') {
+    html += '<div class="risk-banner ' + (rec.riskLevel === 'risk' ? 'st-err' : 'st-warn') + '" style="background:' +
+      (rec.riskLevel === 'risk' ? 'var(--st-err-bg)' : 'var(--st-warn-bg)') + ';color:' +
+      (rec.riskLevel === 'risk' ? 'var(--st-err-fg)' : 'var(--st-warn-fg)') + ';">' +
+      icon('alertTriangle', 16) + (rec.riskLevel === 'risk' ? t('riskBannerRisk') : t('riskBannerDelay')) + '</div>';
+  }
+
+  html += '<div class="drawer-sec">' + t('drawerSecIdentity') + '</div>';
+  html += propRow('plant', 'dashboard') + propRow('projectType', 'list') + propRow('diameter', 'list') + propRow('pn', 'search') + propRow('product', 'list');
+
+  html += '<div class="drawer-sec">' + t('drawerSecCommercial') + '</div>';
+  html += propRow('pnCompetitor', 'edit') + propRow('attrPPCA', 'edit') + propRow('attrDisc', 'edit') + propRow('attrRB', 'edit') +
+    propRow('volume', 'edit') + propRow('oi', 'edit') + propRow('coveragePlus', 'edit') + propRow('eur', 'edit') + propRow('status', 'edit');
+
+  html += '<div class="drawer-sec">' + t('drawerSecMilestones') + '</div>';
+  html += '<div class="milestone-list">';
+  (AppState.drawer.milestoneKeys || []).forEach(function (key) { html += propRow(key, 'checkCircle'); });
+  html += '</div>';
+
+  body.innerHTML = html;
+  wireDrawerEdits();
+}
+
+function fieldLabelKey(key) {
+  var map = {
+    plant: 'fieldPlant', projectType: 'fieldProjectType', diameter: 'fieldDiameter', pn: 'fieldPn',
+    pnCompetitor: 'fieldPnCompetitor', product: 'fieldProduct',
+    attrPPCA: 'fieldAttrPPCA', attrDisc: 'fieldAttrDisc', attrRB: 'fieldAttrRB',
+    volume: 'fieldVolume', oi: 'fieldOi', coveragePlus: 'fieldCoveragePlus', status: 'fieldStatus', eur: 'fieldEur',
+    msSamplePurchase: 'msSamplePurchase', msCompetitorAnalysis: 'msCompetitorAnalysis',
+    msProductDefinition: 'msProductDefinition', msCommercialAgreement: 'msCommercialAgreement',
+    msSampleProduction: 'msSampleProduction', msBenchTesting: 'msBenchTesting', msVehicleTest: 'msVehicleTest',
+    msCRD: 'msCRD', launchSheet: 'launchSheet'
+  };
+  return t(map[key] || key);
+}
+
+function propRow(key, iconName) {
+  var rec = AppState.drawer.record;
+  var col = drawerColByKey(key);
+  var label = fieldLabelKey(key);
+  var raw = rec[key];
+  var displayVal;
+  if (col && col.type === 'date') displayVal = fmtDate(raw);
+  else if (col && col.type === 'number') displayVal = (raw === '' || raw == null) ? '—' : fmtNum(raw);
+  else if (col && col.type === 'combo') displayVal = lexLabel(raw) || '—';
+  else displayVal = (raw === '' || raw == null) ? '—' : escHtml(raw);
+
+  var editable = col && col.editable;
+  var valueHtml;
+  if (editable) {
+    valueHtml = '<button class="prop-btn" data-prop="' + key + '">' + '<span>' + displayVal + '</span>' +
+      '<span class="edit-icon">' + icon('edit', 14) + '</span></button>';
+  } else {
+    valueHtml = '<div class="prop-static">' + displayVal + '</div>';
+  }
+
+  return '<div class="prop-row" data-prop-row="' + key + '">' +
+    '<span class="prop-icon">' + icon(iconName, 18) + '</span>' +
+    '<label class="prop-label" for="propctl-' + key + '">' + label + '</label>' +
+    '<span class="prop-value-wrap">' + valueHtml + '</span></div>';
+}
+
+function wireDrawerEdits() {
+  document.querySelectorAll('[data-prop]').forEach(function (btn) {
+    btn.addEventListener('click', function () { activateEdit(btn.getAttribute('data-prop')); });
+    btn.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); activateEdit(btn.getAttribute('data-prop')); }
+    });
+  });
+}
+
+function activateEdit(key) {
+  var row = document.querySelector('[data-prop-row="' + key + '"]');
+  var col = drawerColByKey(key);
+  var rec = AppState.drawer.record;
+  var wrap = row.querySelector('.prop-value-wrap');
+  var raw = rec[key];
+  var inputHtml;
+  var inputType = 'text';
+  if (col.type === 'number') inputType = 'number';
+  if (col.type === 'date') inputType = 'date';
+
+  if (col.type === 'combo') {
+    var listId = 'dl-' + key;
+    var opts = (AppState.drawer.suggestions || []).map(function (s) { return '<option value="' + escAttr(s) + '">'; }).join('');
+    inputHtml = '<input class="prop-input" id="propctl-' + key + '" list="' + listId + '" value="' + escAttr(raw || '') + '" data-autofocus>' +
+      '<datalist id="' + listId + '">' + opts + '</datalist>';
+  } else if (col.type === 'date') {
+    var dv = raw ? new Date(raw) : null;
+    var iso = (dv && !isNaN(dv.getTime())) ? dv.toISOString().slice(0, 10) : '';
+    inputHtml = '<input class="prop-input" id="propctl-' + key + '" type="date" value="' + iso + '" data-autofocus>';
+  } else {
+    inputHtml = '<input class="prop-input" id="propctl-' + key + '" type="' + inputType + '" value="' + escAttr(raw == null ? '' : raw) + '" data-autofocus>';
+  }
+
+  wrap.innerHTML = inputHtml;
+  var input = wrap.querySelector('[data-autofocus]');
+  input.focus();
+  if (input.select) input.select();
+
+  var commit = function () { saveField(key, input.value); };
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Enter') { ev.preventDefault(); input.blur(); }
+    if (ev.key === 'Escape') { ev.preventDefault(); input.removeEventListener('blur', commit); renderDrawer(); }
+  });
+}
+
+function saveField(key, newValue) {
+  var rec = AppState.drawer.record;
+  var col = drawerColByKey(key);
+  var oldValue = rec[key];
+  // Tarih alanında sunucu ISO datetime tutar, input ise YYYY-MM-DD döner —
+  // yalnız gün kısmını karşılaştır, yoksa değişmeyen bir tarih bile "kaydedildi"
+  // gösterir (madde 2: gerçekte olmayan bir değişikliği bildirmek yanlış-güven).
+  var unchanged = (col && col.type === 'date')
+    ? (String(oldValue || '').slice(0, 10) === String(newValue || ''))
+    : (String(oldValue == null ? '' : oldValue) === String(newValue == null ? '' : newValue));
+  if (unchanged) { renderDrawer(); return; }
+
+  saveStart();
+  gsCall('updateParcaField', [rec.pn, key, newValue], function (res) {
+    rec[key] = res.newValue;
+    if (AppState.dashboard) AppState.dashboard = null; // KPI'lar artık bayat — sonraki ziyarette tazelenir
+    if (AppState.liste.rows) {
+      var row = AppState.liste.rows.find(function (r) { return r.pn === rec.pn; });
+      if (row) row[key] = res.newValue;
+    }
+    saveEnd(true);
+    renderDrawer();
+    var label = fieldLabelKey(key);
+    toastUndo(t('saved') + ': ' + label, function () {
+      gsCall('updateParcaField', [rec.pn, key, res.oldValue], function (undoRes) {
+        rec[key] = undoRes.newValue;
+        renderDrawer();
+        showToast(t('undoDone'), 'success');
+      }, function () { showToast(t('undoFailed'), 'error'); });
+    });
+  }, function (err) {
+    saveEnd(false);
+    showToast(t('saveError') + ': ' + err, 'error');
+    renderDrawer();
+  });
+}
+
+// --------------------------------------------------------------------------
+// Savebar — bilesenler.md "Kayıt Göstergesi"
+// --------------------------------------------------------------------------
+
+var _saveN = 0, _saveErr = false, _saveHideT = null;
+function saveStart() {
+  if (_saveN === 0) _saveErr = false;
+  _saveN++;
+  clearTimeout(_saveHideT);
+  _paintSave('saving');
+}
+function saveEnd(ok) {
+  if (!ok) _saveErr = true;
+  _saveN = Math.max(0, _saveN - 1);
+  if (_saveN > 0) return;
+  _paintSave(_saveErr ? 'error' : 'saved');
+  _saveHideT = setTimeout(function () { document.getElementById('savebar').classList.remove('show'); }, _saveErr ? 2800 : 1500);
+}
+function _paintSave(state) {
+  var bar = document.getElementById('savebar');
+  bar.classList.toggle('err', state === 'error');
+  bar.classList.add('show');
+  bar.setAttribute('role', 'status');
+  bar.setAttribute('aria-live', 'polite');
+  if (state === 'saving') bar.innerHTML = '<span class="spinner" style="width:14px;height:14px;"></span>' + t('saving');
+  else if (state === 'saved') bar.innerHTML = icon('checkCircle', 15) + t('saved');
+  else bar.innerHTML = icon('xCircle', 15) + t('saveError');
+}
+
+// --------------------------------------------------------------------------
+// Toast + Undo — bilesenler.md
+// --------------------------------------------------------------------------
+
+function showToast(msg, type) {
+  var wrap = document.getElementById('toast-wrap');
+  var el = document.createElement('div');
+  el.className = 'toast toast-' + (type || 'info');
+  el.setAttribute('role', type === 'error' ? 'alert' : 'status');
+  el.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(function () { el.style.opacity = '0'; setTimeout(function () { el.remove(); }, 300); }, 2700);
+}
+
+var UNDO_MS = 5000, _undoToast = null;
+function toastUndo(msg, undoFn) {
+  if (_undoToast) _undoToast.remove();
+  var wrap = document.getElementById('toast-wrap');
+  var el = document.createElement('div');
+  el.className = 'toast toast-success';
+  el.setAttribute('role', 'status');
+  el.setAttribute('aria-live', 'polite');
+  el.innerHTML = '<span>' + escHtml(msg) + '</span>';
+  var btn = document.createElement('button');
+  btn.className = 'toast-undo';
+  btn.innerHTML = icon('undo', 13) + t('undo');
+  var used = false;
+  btn.addEventListener('click', function () {
+    if (used) return; used = true;
+    if (_undoToast === el) _undoToast = null;
+    el.remove();
+    try { undoFn(); } catch (e) { showToast(t('undoFailed'), 'error'); }
+  });
+  el.appendChild(btn);
+  wrap.appendChild(el);
+  _undoToast = el;
+  setTimeout(function () { if (_undoToast === el) _undoToast = null; if (el.parentNode) el.remove(); }, UNDO_MS);
+}
+
+// --------------------------------------------------------------------------
+// Yardımcılar
+// --------------------------------------------------------------------------
+
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function escAttr(s) { return escHtml(s); }
+</script>

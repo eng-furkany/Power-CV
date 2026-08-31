@@ -1,0 +1,5 @@
+# Apps Script kimlik dosyaları — asla commit edilmez (bkz. docs/apps-script-push.md)
+.clasprc.json
+.clasp.json.local
+
+node_modules/
