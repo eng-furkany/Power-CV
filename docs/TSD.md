@@ -49,8 +49,7 @@ yok, ama boş/anonim çağrı reddedilir).
 
 | Fonksiyon | Yön | Açıklama |
 |---|---|---|
-| `getDashboardData()` | oku | KPI'lar, durum dağılımı, ürün hacmi, risk tablosu |
-| `getParcaListesi()` | oku | `Sheet1`'in tamamı, normalize edilmiş satır nesneleri |
+| `getParcaListesi()` | oku | `Sheet1`'in tamamı, normalize edilmiş satır nesneleri + `riskLevel` |
 | `getParcaDetay(pn)` | oku | Tek kaydın tüm alanları |
 | `updateParcaField(pn, field, value)` | **yaz** | Tek hücre güncelleme — whitelist edilmiş `field` adları, sunucu tarafı doğrulama, sağlama (madde 2) |
 | `getUserPrefs()` / `saveUserPref(key, value)` | oku/yaz | Koyu mod + dil tercihi, `PropertiesService.getUserProperties()` |
@@ -58,6 +57,14 @@ yok, ama boş/anonim çağrı reddedilir).
 
 Her yazma çağrısı gerçek sonucu (`{ok:true}` / `{error:'...'}`) döner; istemci
 `veri-listeleme.md`'deki sözleşmeye göre HER ZAMAN denetler.
+
+**Dashboard'un KPI/pasta-grafik/gruplu-tablo agregasyonları artık ayrı bir uç noktası
+yok** — Dashboard da `getParcaListesi()`'nin döndürdüğü aynı satır önbelleğini kullanır,
+`JavaScript.html`'deki `computeDashboardAggregates()` istemci tarafında hesaplar. Bunun
+nedeni: sayfanın üstündeki genel arama kutusu (virgülle ayrılmış çoklu terim, OR eşleşme)
+her tuş vuruşunda tüm KPI/grafik/tabloları anlık yeniden hesaplaması gerekiyor — sunucuya
+her karakterde gidip gelmek bunu yavaşlatırdı. `Sheet1` satır sayısı (≲1000) bu hesaplamayı
+tarayıcıda yapmak için zaten küçük ölçekte.
 
 ## Risk Rozeti — Eşik Kuralı (`muhendislik-standartlari.md` madde 7)
 

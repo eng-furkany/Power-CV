@@ -49,12 +49,19 @@ var T = {
     theme: 'Tema', darkOn: 'Açık', darkOff: 'Koyu',
     kpiTotalParts: 'Toplam Parça', kpiTotalVolume: 'Toplam Hacim', kpiTotalEur: 'Toplam EUR',
     kpiLaunched: 'Launched', kpiRisk: 'Risk / Gecikme',
-    chartStatusTitle: 'Durum Dağılımı', chartProductTitle: 'Ürün Bazlı Hacim',
+    chartPlantTitle: 'Plant Dağılımı', chartProjectTypeTitle: 'Project Type Dağılımı',
+    chartStatusRawTitle: 'Status Dağılımı', chartProductTitle: 'Ürün Bazlı Hacim',
+    groupedDATitle: 'Diameter × Plant — Toplam OI', groupedTFTitle: 'Project Type × Product — Toplam OI',
+    colDiameter: 'Diameter', colProjectType: 'Project Type', colOiSum: 'Toplam OI',
+    otherBucket: 'Diğer', filterAppliedToast: 'Filtre uygulandı',
+    globalSearchLabel: 'Genel Arama',
+    globalSearchPlaceholder: 'P/N, Plant, Product, Project Type, Status ara — virgülle birden çok değer yazabilirsiniz',
+    riskLocalSearchPlaceholder: 'Bu tabloda ara…',
     riskTableTitle: 'Risk / Gecikme Tablosu',
     riskTableEmptyTitle: 'Risk yok', riskTableEmptySub: 'Şu an risk/gecikme rozetli bir kayıt bulunmuyor.',
     retry: 'Tekrar dene', loadError: 'Bu veriler şu an alınamıyor.',
     filterPlant: 'Plant', filterProduct: 'Product', filterStatus: 'Durum', filterAll: 'Tümü',
-    searchPlaceholder: 'P/N, Plant veya Product ara…',
+    searchPlaceholder: 'P/N, Plant, Product ara — virgülle birden çok değer yazabilirsiniz',
     clearFilters: 'Filtreyi temizle', activeFilters: 'Aktif filtreler',
     listEmptyTitle: 'Kayıt bulunamadı', listEmptySub: 'Süzgece uyan bir parça yok.',
     colPlant: 'Plant', colPn: 'P/N', colProduct: 'Product', colVolume: 'Volume', colOi: 'OI',
@@ -85,12 +92,19 @@ var T = {
     theme: 'Theme', darkOn: 'Light', darkOff: 'Dark',
     kpiTotalParts: 'Total Parts', kpiTotalVolume: 'Total Volume', kpiTotalEur: 'Total EUR',
     kpiLaunched: 'Launched', kpiRisk: 'Risk / Delay',
-    chartStatusTitle: 'Status Breakdown', chartProductTitle: 'Volume by Product',
+    chartPlantTitle: 'Plant Breakdown', chartProjectTypeTitle: 'Project Type Breakdown',
+    chartStatusRawTitle: 'Status Breakdown', chartProductTitle: 'Volume by Product',
+    groupedDATitle: 'Diameter × Plant — Total OI', groupedTFTitle: 'Project Type × Product — Total OI',
+    colDiameter: 'Diameter', colProjectType: 'Project Type', colOiSum: 'Total OI',
+    otherBucket: 'Other', filterAppliedToast: 'Filter applied',
+    globalSearchLabel: 'Global Search',
+    globalSearchPlaceholder: 'Search P/N, Plant, Product, Project Type, Status — comma-separate for multiple values',
+    riskLocalSearchPlaceholder: 'Search this table…',
     riskTableTitle: 'Risk / Delay Table',
     riskTableEmptyTitle: 'No risk', riskTableEmptySub: 'No part currently carries a risk/delay flag.',
     retry: 'Retry', loadError: 'These figures cannot be loaded right now.',
     filterPlant: 'Plant', filterProduct: 'Product', filterStatus: 'Status', filterAll: 'All',
-    searchPlaceholder: 'Search P/N, Plant or Product…',
+    searchPlaceholder: 'Search P/N, Plant, Product — comma-separate for multiple values',
     clearFilters: 'Clear filters', activeFilters: 'Active filters',
     listEmptyTitle: 'No records', listEmptySub: 'No part matches the current filters.',
     colPlant: 'Plant', colPn: 'P/N', colProduct: 'Product', colVolume: 'Volume', colOi: 'OI',
@@ -140,7 +154,7 @@ var AppState = {
   darkMode: false,
   lang: 'tr',
   currentPage: 'dashboard',
-  dashboard: null,
+  dashboard: { searchInput: '', riskSearch: '', agg: null },
   liste: { rows: null, columns: null, filters: {}, search: '', sort: { key: null, dir: 1 } },
   drawer: { open: false, pn: null, listPns: [], record: null, columns: null, milestoneKeys: [], suggestions: [] },
   charts: {}
@@ -272,7 +286,7 @@ function fmtDate(iso) {
 // Routing
 // --------------------------------------------------------------------------
 
-function navigateTo(page, opts) {
+function navigateTo(page) {
   AppState.currentPage = page;
   document.querySelectorAll('.page-view').forEach(function (el) { el.classList.add('hidden'); });
   var view = document.getElementById('view-' + page);
@@ -283,28 +297,54 @@ function navigateTo(page, opts) {
   document.getElementById('hdr-page-title').textContent = (page === 'dashboard') ? t('navDashboard') : t('navListe');
 
   if (page === 'dashboard') loadDashboard(false);
-  if (page === 'liste') {
-    if (opts && opts.statusCategory) {
-      AppState.liste.filters.statusCategory = [opts.statusCategory];
-    }
-    loadListe(false);
-  }
+  if (page === 'liste') loadListe(false);
+}
+
+// --------------------------------------------------------------------------
+// Arama — virgülle ayrılmış çoklu terim, Türkçe karakter-duyarsız (OR eşleşme).
+// Dashboard'un üst genel araması ve Parça Listesi'nin arama kutusu ikisi de
+// bunu kullanır — "virgül varsa hepsini tek bir listede göster" isteği.
+// --------------------------------------------------------------------------
+
+function parseSearchTerms(str) {
+  return String(str || '').split(',').map(function (s) { return _norm(s.trim()); }).filter(Boolean);
+}
+function rowSearchHay(r) {
+  return _norm([r.pn, r.plant, r.product, r.projectType, r.status].join(' '));
+}
+function rowMatchesTerms(r, terms) {
+  if (!terms || !terms.length) return true;
+  var hay = rowSearchHay(r);
+  return terms.some(function (term) { return hay.indexOf(term) > -1; });
 }
 
 // --------------------------------------------------------------------------
 // Dashboard
 // --------------------------------------------------------------------------
 
+function ensureRowsLoaded(force, onReady) {
+  if (AppState.liste.rows && !force) { onReady(); return; }
+  gsCall('getParcaListesi', [], function (data) {
+    data.rows.forEach(function (r) {
+      var launched = /launched/i.test(String(r.status || ''));
+      r.statusCategory = launched ? 'Launched' : (r.riskLevel === 'risk' ? 'Risk/Delay' : (r.riskLevel === 'gecikme' ? 'Gecikme' : 'Planlı'));
+    });
+    AppState.liste.rows = data.rows;
+    AppState.liste.columns = data.columns;
+    onReady(null);
+  }, function (err) { onReady(err); });
+}
+
 function loadDashboard(force) {
-  if (AppState.dashboard && !force) { renderDashboard(); return; }
   var root = document.getElementById('dashboard-body');
   root.innerHTML = '<div class="loading-overlay"><span class="spinner"></span>' + t('loading') + '</div>';
-  gsCall('getDashboardData', [], function (data) {
-    AppState.dashboard = data;
+  ensureRowsLoaded(force, function (err) {
+    if (err) {
+      root.innerHTML = '<div class="chart-error">' + icon('alertTriangle', 22) + '<div>' + t('loadError') + '</div>' +
+        '<button class="btn btn-outlined" onclick="loadDashboard(true)">' + icon('refreshCw', 14) + ' ' + t('retry') + '</button></div>';
+      return;
+    }
     renderDashboard();
-  }, function (err) {
-    root.innerHTML = '<div class="chart-error">' + icon('alertTriangle', 22) + '<div>' + t('loadError') + '</div>' +
-      '<button class="btn btn-outlined" onclick="loadDashboard(true)">' + icon('refreshCw', 14) + ' ' + t('retry') + '</button></div>';
   });
 }
 
@@ -316,57 +356,6 @@ function riskChip(level, isLaunched) {
 }
 function statusChipHtml(cls, iconName, label) {
   return '<span class="status-chip ' + cls + '">' + (iconName ? icon(iconName, 12) : '') + label + '</span>';
-}
-
-function renderDashboard() {
-  var d = AppState.dashboard;
-  var root = document.getElementById('dashboard-body');
-  if (!d) return;
-  var k = d.kpis;
-  var html = '';
-  html += '<div class="kpi-row">' +
-    kpiCard(t('kpiTotalParts'), fmtNum(k.totalParts)) +
-    kpiCard(t('kpiTotalVolume'), fmtNum(k.totalVolume)) +
-    kpiCard(t('kpiTotalEur'), fmtEur(k.totalEur)) +
-    kpiCard(t('kpiLaunched'), fmtNum(k.launchedCount)) +
-    kpiCard(t('kpiRisk'), fmtNum(k.riskCount), k.riskCount > 0) +
-    '</div>';
-
-  html += '<div class="chart-grid">' +
-    '<div class="card"><h2 class="page-subtitle" style="font-size:var(--fs-lg);color:var(--heading);margin-bottom:8px;">' + t('chartStatusTitle') + '</h2>' +
-    '<div class="chart-canvas-wrap"><canvas id="chart-status"></canvas></div></div>' +
-    '<div class="card"><h2 class="page-subtitle" style="font-size:var(--fs-lg);color:var(--heading);margin-bottom:8px;">' + t('chartProductTitle') + '</h2>' +
-    '<div class="chart-canvas-wrap"><canvas id="chart-product"></canvas></div></div>' +
-    '</div>';
-
-  html += '<div class="card"><h2 class="page-subtitle" style="font-size:var(--fs-lg);color:var(--heading);margin-bottom:8px;">' + t('riskTableTitle') + '</h2>';
-  if (!d.riskRows.length) {
-    html += emptyStateHtml('checkCircle', t('riskTableEmptyTitle'), t('riskTableEmptySub'), '');
-  } else {
-    html += '<div class="tbl-wrap"><table class="dt"><thead><tr>' +
-      '<th>' + t('colPn') + '</th><th>' + t('colPlant') + '</th><th>' + t('colProduct') + '</th>' +
-      '<th class="cf-num">' + t('colVolume') + '</th><th>' + t('colStatus') + '</th></tr></thead><tbody>';
-    d.riskRows.forEach(function (r) {
-      html += '<tr>' +
-        '<td><button class="pn-link" data-open-pn="' + escAttr(r.pn) + '" data-open-scope="risk">' + escHtml(r.pn) + '</button></td>' +
-        '<td>' + escHtml(r.plant) + '</td><td>' + escHtml(r.product) + '</td>' +
-        '<td class="cf-num">' + fmtNum(r.volume) + '</td>' +
-        '<td>' + riskChip(r.riskLevel, /launched/i.test(String(r.status || ''))) + '</td>' +
-        '</tr>';
-    });
-    html += '</tbody></table></div>';
-  }
-  html += '</div>';
-
-  root.innerHTML = html;
-  root.querySelectorAll('[data-open-pn]').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      openDrawer(btn.getAttribute('data-open-pn'), d.riskRows.map(function (r) { return r.pn; }));
-    });
-  });
-
-  drawStatusChart(d.statusCounts);
-  drawProductChart(d.productVolume);
 }
 
 function kpiCard(label, value, attn) {
@@ -381,38 +370,239 @@ function emptyStateHtml(iconName, title, sub, btnsHtml) {
 }
 
 // --------------------------------------------------------------------------
+// Dashboard agregasyonları — istemci tarafında, getParcaListesi()'nin aynı
+// satır önbelleğinden (AppState.liste.rows) hesaplanır. Üstteki genel arama
+// kutusu bu satırları önceden süzer, aşağıdaki her şey (KPI/pasta/çubuk/
+// gruplu tablolar/risk tablosu) yalnız süzülmüş alt kümeyi görür.
+// --------------------------------------------------------------------------
+
+function computeDashboardAggregates(rows) {
+  var totalVolume = 0, totalEur = 0, launchedCount = 0, riskCount = 0;
+  var plantCounts = {}, projectTypeCounts = {}, statusRawCounts = {}, productVolume = {};
+  var groupedDA = {}, groupedTF = {};
+  var riskRows = [];
+
+  rows.forEach(function (r) {
+    totalVolume += Number(r.volume) || 0;
+    totalEur += Number(r.eur) || 0;
+    var isLaunched = /launched/i.test(String(r.status || ''));
+    if (isLaunched) launchedCount++;
+    if (r.riskLevel === 'risk' || r.riskLevel === 'gecikme') { riskCount++; riskRows.push(r); }
+
+    var plantKey = String(r.plant || '—');
+    plantCounts[plantKey] = (plantCounts[plantKey] || 0) + 1;
+    var typeKey = String(r.projectType || '—');
+    projectTypeCounts[typeKey] = (projectTypeCounts[typeKey] || 0) + 1;
+    var statusKey = String(r.status || '—');
+    statusRawCounts[statusKey] = (statusRawCounts[statusKey] || 0) + 1;
+    var prodKey = String(r.product || '—');
+    productVolume[prodKey] = (productVolume[prodKey] || 0) + (Number(r.volume) || 0);
+
+    // C (Diameter) + A (Plant) bazında K (OI) toplamı.
+    var daKey = String(r.diameter == null ? '—' : r.diameter) + '' + plantKey;
+    if (!groupedDA[daKey]) groupedDA[daKey] = { diameter: r.diameter, plant: r.plant, oiSum: 0 };
+    groupedDA[daKey].oiSum += Number(r.oi) || 0;
+
+    // B (Project Type) + F (Product) bazında K (OI) toplamı.
+    var tfKey = typeKey + '' + prodKey;
+    if (!groupedTF[tfKey]) groupedTF[tfKey] = { projectType: r.projectType, product: r.product, oiSum: 0 };
+    groupedTF[tfKey].oiSum += Number(r.oi) || 0;
+  });
+
+  riskRows.sort(function (a, b) { return (a.riskLevel === 'risk' ? 0 : 1) - (b.riskLevel === 'risk' ? 0 : 1); });
+
+  return {
+    kpis: { totalParts: rows.length, totalVolume: totalVolume, totalEur: totalEur, launchedCount: launchedCount, riskCount: riskCount },
+    plantCounts: bucketTop(plantCounts, 8),
+    projectTypeCounts: bucketTop(projectTypeCounts, 8),
+    statusRawCounts: bucketTop(statusRawCounts, 8),
+    productVolume: productVolume,
+    groupedDA: Object.keys(groupedDA).map(function (k) { return groupedDA[k]; }).sort(function (a, b) { return b.oiSum - a.oiSum; }),
+    groupedTF: Object.keys(groupedTF).map(function (k) { return groupedTF[k]; }).sort(function (a, b) { return b.oiSum - a.oiSum; }),
+    riskRows: riskRows.slice(0, 50)
+  };
+}
+
+// Bir pasta grafiğinde çok fazla ince dilim okunmaz oluyor — en büyük (max-1)
+// kategori aynen kalır, kalanı tek bir "Diğer" dilimde toplanır.
+function bucketTop(counts, max) {
+  var entries = Object.keys(counts).map(function (k) { return [k, counts[k]]; });
+  entries.sort(function (a, b) { return b[1] - a[1]; });
+  if (entries.length <= max) return counts;
+  var out = {};
+  entries.slice(0, max - 1).forEach(function (e) { out[e[0]] = e[1]; });
+  var restSum = entries.slice(max - 1).reduce(function (s, e) { return s + e[1]; }, 0);
+  out[t('otherBucket')] = restSum;
+  return out;
+}
+
+function renderDashboard() {
+  var allRows = AppState.liste.rows || [];
+  var terms = parseSearchTerms(AppState.dashboard.searchInput);
+  var rows = allRows.filter(function (r) { return rowMatchesTerms(r, terms); });
+  var agg = computeDashboardAggregates(rows);
+  AppState.dashboard.agg = agg;
+
+  var riskTerms = parseSearchTerms(AppState.dashboard.riskSearch);
+  var riskFiltered = agg.riskRows.filter(function (r) { return rowMatchesTerms(r, riskTerms); });
+
+  var root = document.getElementById('dashboard-body');
+  var html = '';
+
+  html += '<div class="filter-bar">' +
+    '<div class="filter-group filter-search" style="flex:1 1 260px;">' +
+    '<span class="filter-label">' + t('globalSearchLabel') + '</span>' +
+    '<input class="fdr-search" id="dash-search" type="search" placeholder="' + escAttr(t('globalSearchPlaceholder')) + '" value="' + escAttr(AppState.dashboard.searchInput) + '" aria-label="' + escAttr(t('globalSearchLabel')) + '"></div>' +
+    (terms.length ? '<button class="btn btn-outlined" id="dash-search-clear">' + icon('x', 13) + '<span class="btn-label">' + t('clearFilters') + '</span></button>' : '') +
+    '</div>';
+
+  var k = agg.kpis;
+  html += '<div class="kpi-row">' +
+    kpiCard(t('kpiTotalParts'), fmtNum(k.totalParts)) +
+    kpiCard(t('kpiTotalVolume'), fmtNum(k.totalVolume)) +
+    kpiCard(t('kpiTotalEur'), fmtEur(k.totalEur)) +
+    kpiCard(t('kpiLaunched'), fmtNum(k.launchedCount)) +
+    kpiCard(t('kpiRisk'), fmtNum(k.riskCount), k.riskCount > 0) +
+    '</div>';
+
+  html += '<div class="chart-grid">' +
+    chartCardHtml('chart-plant', t('chartPlantTitle')) +
+    chartCardHtml('chart-projecttype', t('chartProjectTypeTitle')) +
+    chartCardHtml('chart-statusraw', t('chartStatusRawTitle')) +
+    chartCardHtml('chart-product', t('chartProductTitle')) +
+    '</div>';
+
+  html += groupedTableHtml(t('groupedDATitle'), ['colDiameter', 'colPlant', 'colOiSum'], agg.groupedDA, function (row) {
+    return [escHtml(row.diameter == null ? '—' : row.diameter), escHtml(row.plant || '—'), fmtNum(row.oiSum)];
+  });
+  html += groupedTableHtml(t('groupedTFTitle'), ['colProjectType', 'colProduct', 'colOiSum'], agg.groupedTF, function (row) {
+    return [escHtml(row.projectType || '—'), escHtml(row.product || '—'), fmtNum(row.oiSum)];
+  });
+
+  html += '<div class="card"><h2 class="chart-title">' + t('riskTableTitle') + '</h2>';
+  if (agg.riskRows.length) {
+    html += '<input class="fdr-search" id="dash-risk-search" type="search" placeholder="' + escAttr(t('riskLocalSearchPlaceholder')) + '" value="' + escAttr(AppState.dashboard.riskSearch) + '" style="margin-bottom:var(--space-md);max-width:320px;" aria-label="' + escAttr(t('riskLocalSearchPlaceholder')) + '">';
+  }
+  if (!agg.riskRows.length) {
+    html += emptyStateHtml('checkCircle', t('riskTableEmptyTitle'), t('riskTableEmptySub'), '');
+  } else if (!riskFiltered.length) {
+    html += emptyStateHtml('search', t('listEmptyTitle'), t('listEmptySub'),
+      '<button class="btn btn-outlined" id="dash-risk-search-clear">' + t('clearFilters') + '</button>');
+  } else {
+    html += '<div class="tbl-wrap"><table class="dt"><thead><tr>' +
+      '<th>' + t('colPn') + '</th><th>' + t('colPlant') + '</th><th>' + t('colProduct') + '</th>' +
+      '<th class="cf-num">' + t('colVolume') + '</th><th>' + t('colStatus') + '</th></tr></thead><tbody>';
+    riskFiltered.forEach(function (r) {
+      html += '<tr>' +
+        '<td><button class="pn-link" data-open-pn="' + escAttr(r.pn) + '">' + escHtml(r.pn) + '</button></td>' +
+        '<td>' + escHtml(r.plant) + '</td><td>' + escHtml(r.product) + '</td>' +
+        '<td class="cf-num">' + fmtNum(r.volume) + '</td>' +
+        '<td>' + riskChip(r.riskLevel, /launched/i.test(String(r.status || ''))) + '</td>' +
+        '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+  html += '</div>';
+
+  root.innerHTML = html;
+  wireDashboardInteractions(riskFiltered);
+  drawPieChart('chart-plant', 'plant', agg.plantCounts);
+  drawPieChart('chart-projecttype', 'projecttype', agg.projectTypeCounts);
+  drawPieChart('chart-statusraw', 'statusraw', agg.statusRawCounts);
+  drawProductChart(agg.productVolume);
+}
+
+function chartCardHtml(canvasId, title) {
+  return '<div class="card"><h2 class="chart-title">' + title + '</h2>' +
+    '<div class="chart-canvas-wrap"><canvas id="' + canvasId + '"></canvas></div></div>';
+}
+
+function groupedTableHtml(title, colKeys, rows, rowFn) {
+  var html = '<div class="card" style="margin-bottom:var(--space-lg);"><h2 class="chart-title">' + title + '</h2>';
+  if (!rows.length) {
+    html += emptyStateHtml('search', t('listEmptyTitle'), t('listEmptySub'), '');
+  } else {
+    html += '<div class="tbl-wrap"><table class="dt"><thead><tr>';
+    colKeys.forEach(function (ck, i) { html += '<th' + (i === colKeys.length - 1 ? ' class="cf-num"' : '') + '>' + t(ck) + '</th>'; });
+    html += '</tr></thead><tbody>';
+    rows.slice(0, 100).forEach(function (row) {
+      var cells = rowFn(row);
+      html += '<tr>' + cells.map(function (c, i) { return '<td' + (i === cells.length - 1 ? ' class="cf-num"' : '') + '>' + c + '</td>'; }).join('') + '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function wireDashboardInteractions(riskFiltered) {
+  var search = document.getElementById('dash-search');
+  if (search) {
+    search.addEventListener('input', function () {
+      AppState.dashboard.searchInput = search.value;
+      var pos = search.selectionStart;
+      renderDashboard();
+      var again = document.getElementById('dash-search');
+      if (again) { again.focus(); again.setSelectionRange(pos, pos); }
+    });
+  }
+  var clearBtn = document.getElementById('dash-search-clear');
+  if (clearBtn) clearBtn.addEventListener('click', function () { AppState.dashboard.searchInput = ''; renderDashboard(); });
+
+  var riskSearch = document.getElementById('dash-risk-search');
+  if (riskSearch) {
+    riskSearch.addEventListener('input', function () {
+      AppState.dashboard.riskSearch = riskSearch.value;
+      var pos = riskSearch.selectionStart;
+      renderDashboard();
+      var again = document.getElementById('dash-risk-search');
+      if (again) { again.focus(); again.setSelectionRange(pos, pos); }
+    });
+  }
+  var riskClearBtn = document.getElementById('dash-risk-search-clear');
+  if (riskClearBtn) riskClearBtn.addEventListener('click', function () { AppState.dashboard.riskSearch = ''; renderDashboard(); });
+
+  document.querySelectorAll('#dashboard-body [data-open-pn]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      openDrawer(btn.getAttribute('data-open-pn'), riskFiltered.map(function (r) { return r.pn; }));
+    });
+  });
+}
+
+// Bir pasta/çubuk dilimine tıklamak üst genel arama kutusunu o değerle
+// DOLDURUR ve sayfayı yerinde yeniden süzer — grafikler.md "grafik = filtre
+// kontrolü" ilkesi, ama Liste'ye gitmek yerine Dashboard'un kendi üstünde.
+function applyChartClickFilter(rawLabel) {
+  if (rawLabel === t('otherBucket')) return; // "Diğer" birden çok değeri temsil ediyor, tıklanamaz
+  AppState.dashboard.searchInput = rawLabel;
+  renderDashboard();
+  showToast(t('filterAppliedToast') + ': ' + rawLabel, 'info');
+}
+
+// --------------------------------------------------------------------------
 // Grafikler — grafikler.md (Chart.js, sabit yükseklikli kap, PALETTE, onClick=filtre)
 // --------------------------------------------------------------------------
 
 var CHART_PALETTE = ['#0072ce', '#76ff03', '#f59e0b', '#8b5cf6', '#ef4444', '#041b3c', '#06b6d4', '#ec4899'];
-var STATUS_COLOR = { 'Launched': '#22c55e', 'Planlı': '#0072ce', 'Gecikme': '#f59e0b', 'Risk/Delay': '#ef4444' };
 
-function drawStatusChart(statusCounts) {
-  var canvas = document.getElementById('chart-status');
+function drawPieChart(canvasId, chartKey, counts) {
+  var canvas = document.getElementById(canvasId);
   var wrap = canvas.closest('.chart-canvas-wrap');
-  var labels = Object.keys(statusCounts || {});
+  var labels = Object.keys(counts || {});
   if (!labels.length) { showChartNoData(wrap, canvas); return; }
   showCanvas(wrap, canvas);
-  var values = labels.map(function (l) { return statusCounts[l]; });
-  var colors = labels.map(function (l) { return STATUS_COLOR[l] || CHART_PALETTE[labels.indexOf(l) % CHART_PALETTE.length]; });
-  var localizedLabels = labels.map(function (l) {
-    if (l === 'Launched') return t('statusLaunched');
-    if (l === 'Planlı') return t('statusPlanned');
-    if (l === 'Gecikme') return t('statusDelay');
-    if (l === 'Risk/Delay') return t('statusRisk');
-    return l;
-  });
-  if (AppState.charts.status) AppState.charts.status.destroy();
-  AppState.charts.status = new Chart(canvas.getContext('2d'), {
+  var values = labels.map(function (l) { return counts[l]; });
+  var colors = labels.map(function (l, i) { return CHART_PALETTE[i % CHART_PALETTE.length]; });
+  if (AppState.charts[chartKey]) AppState.charts[chartKey].destroy();
+  AppState.charts[chartKey] = new Chart(canvas.getContext('2d'), {
     type: 'doughnut',
-    data: { labels: localizedLabels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 2, borderColor: cssVar('--card-bg') }] },
+    data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 2, borderColor: cssVar('--card-bg') }] },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'right', labels: { color: cssVar('--text'), boxWidth: 12, font: { size: 11 } } } },
+      plugins: { legend: { position: 'right', labels: { color: cssVar('--text'), boxWidth: 12, font: { size: 10 } } } },
       onClick: function (evt, els) {
         if (!els.length) return;
-        var rawLabel = labels[els[0].index];
-        navigateTo('liste', { statusCategory: rawLabel });
+        applyChartClickFilter(labels[els[0].index]);
       }
     }
   });
@@ -435,6 +625,11 @@ function drawProductChart(productVolume) {
       scales: {
         x: { ticks: { color: cssVar('--muted'), font: { size: 9 } }, grid: { color: 'rgba(148,163,184,0.15)' } },
         y: { ticks: { color: cssVar('--muted'), font: { size: 9 } }, grid: { display: false } }
+      },
+      onClick: function (evt, els) {
+        if (!els.length) return;
+        var idx = els[0].index;
+        applyChartClickFilter(labels[idx]);
       }
     }
   });
@@ -453,10 +648,12 @@ function showCanvas(wrap, canvas) {
 }
 function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || getComputedStyle(document.body).getPropertyValue(name).trim(); }
 function refreshChartsForTheme() {
-  if (AppState.dashboard) {
-    if (AppState.charts.status) drawStatusChart(AppState.dashboard.statusCounts);
-    if (AppState.charts.product) drawProductChart(AppState.dashboard.productVolume);
-  }
+  var agg = AppState.dashboard.agg;
+  if (!agg) return;
+  if (AppState.charts.plant) drawPieChart('chart-plant', 'plant', agg.plantCounts);
+  if (AppState.charts.projecttype) drawPieChart('chart-projecttype', 'projecttype', agg.projectTypeCounts);
+  if (AppState.charts.statusraw) drawPieChart('chart-statusraw', 'statusraw', agg.statusRawCounts);
+  if (AppState.charts.product) drawProductChart(agg.productVolume);
 }
 
 // --------------------------------------------------------------------------
@@ -469,35 +666,27 @@ var VISIBLE_COLS = ['plant', 'pn', 'product', 'volume', 'oi', 'status', 'launchS
 var FILTERABLE = ['plant', 'product', 'statusCategory'];
 
 function loadListe(force) {
-  if (AppState.liste.rows && !force) { renderListe(); return; }
   var root = document.getElementById('liste-body');
   root.innerHTML = '<div class="loading-overlay"><span class="spinner"></span>' + t('loading') + '</div>';
-  gsCall('getParcaListesi', [], function (data) {
-    data.rows.forEach(function (r) {
-      var launched = /launched/i.test(String(r.status || ''));
-      r.statusCategory = launched ? 'Launched' : (r.riskLevel === 'risk' ? 'Risk/Delay' : (r.riskLevel === 'gecikme' ? 'Gecikme' : 'Planlı'));
-    });
-    AppState.liste.rows = data.rows;
-    AppState.liste.columns = data.columns;
+  ensureRowsLoaded(force, function (err) {
+    if (err) {
+      root.innerHTML = '<div class="chart-error">' + icon('alertTriangle', 22) + '<div>' + t('loadError') + '</div>' +
+        '<button class="btn btn-outlined" onclick="loadListe(true)">' + icon('refreshCw', 14) + ' ' + t('retry') + '</button></div>';
+      return;
+    }
     renderListe();
-  }, function (err) {
-    root.innerHTML = '<div class="chart-error">' + icon('alertTriangle', 22) + '<div>' + t('loadError') + '</div>' +
-      '<button class="btn btn-outlined" onclick="loadListe(true)">' + icon('refreshCw', 14) + ' ' + t('retry') + '</button></div>';
   });
 }
 
 function applyListeFilters() {
   var rows = AppState.liste.rows || [];
   var f = AppState.liste.filters;
-  var q = _norm(AppState.liste.search);
+  var terms = parseSearchTerms(AppState.liste.search);
   var out = rows.filter(function (r) {
     for (var key in f) {
       if (f[key] && f[key].length && f[key].indexOf(String(r[key])) === -1) return false;
     }
-    if (q) {
-      var hay = _norm([r.pn, r.plant, r.product].join(' '));
-      if (hay.indexOf(q) === -1) return false;
-    }
+    if (!rowMatchesTerms(r, terms)) return false;
     return true;
   });
   var s = AppState.liste.sort;
@@ -915,18 +1104,29 @@ function saveField(key, newValue) {
   saveStart();
   gsCall('updateParcaField', [rec.pn, key, newValue], function (res) {
     rec[key] = res.newValue;
-    if (AppState.dashboard) AppState.dashboard = null; // KPI'lar artık bayat — sonraki ziyarette tazelenir
     if (AppState.liste.rows) {
       var row = AppState.liste.rows.find(function (r) { return r.pn === rec.pn; });
       if (row) row[key] = res.newValue;
     }
     saveEnd(true);
     renderDrawer();
+    // Panelin arkasındaki sayfa (Dashboard'un KPI/grafikleri veya Liste'nin
+    // tablosu) düzenlenen satırı zaten güncellenmiş önbellekten okuyacak —
+    // yalnız az önce yazdık diye "kaydedildi" gösterip arka planı bayat
+    // bırakmamak için burada da yeniden çiziyoruz.
+    if (AppState.currentPage === 'dashboard') renderDashboard();
+    if (AppState.currentPage === 'liste') renderListe();
     var label = fieldLabelKey(key);
     toastUndo(t('saved') + ': ' + label, function () {
       gsCall('updateParcaField', [rec.pn, key, res.oldValue], function (undoRes) {
         rec[key] = undoRes.newValue;
+        if (AppState.liste.rows) {
+          var row2 = AppState.liste.rows.find(function (r) { return r.pn === rec.pn; });
+          if (row2) row2[key] = undoRes.newValue;
+        }
         renderDrawer();
+        if (AppState.currentPage === 'dashboard') renderDashboard();
+        if (AppState.currentPage === 'liste') renderListe();
         showToast(t('undoDone'), 'success');
       }, function () { showToast(t('undoFailed'), 'error'); });
     });

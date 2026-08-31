@@ -133,63 +133,12 @@ function _readAllRows_() {
 }
 
 // ---------------------------------------------------------------------------
-// Dashboard
-// ---------------------------------------------------------------------------
-
-function getDashboardData() {
-  _requireUser_();
-  try {
-    var rows = _readAllRows_();
-    var totalVolume = 0, totalEur = 0, launchedCount = 0, riskCount = 0;
-    var statusCounts = {};
-    var productVolume = {};
-    var riskRows = [];
-
-    rows.forEach(function (r) {
-      totalVolume += Number(r.volume) || 0;
-      totalEur += Number(r.eur) || 0;
-      var level = computeRiskLevel_(r);
-      r.riskLevel = level;
-
-      var isLaunched = /launched/i.test(String(r.status || ''));
-      if (isLaunched) launchedCount++;
-      if (level === 'risk' || level === 'gecikme') {
-        riskCount++;
-        riskRows.push(r);
-      }
-
-      var statusLabel = isLaunched ? 'Launched' : (level === 'risk' ? 'Risk/Delay' : (level === 'gecikme' ? 'Gecikme' : 'Planlı'));
-      statusCounts[statusLabel] = (statusCounts[statusLabel] || 0) + 1;
-
-      var prod = String(r.product || 'Diğer');
-      productVolume[prod] = (productVolume[prod] || 0) + (Number(r.volume) || 0);
-    });
-
-    riskRows.sort(function (a, b) {
-      return (a.riskLevel === 'risk' ? 0 : 1) - (b.riskLevel === 'risk' ? 0 : 1);
-    });
-
-    return {
-      ok: true,
-      kpis: {
-        totalParts: rows.length,
-        totalVolume: totalVolume,
-        totalEur: totalEur,
-        launchedCount: launchedCount,
-        riskCount: riskCount
-      },
-      statusCounts: statusCounts,
-      productVolume: productVolume,
-      riskRows: riskRows.slice(0, 50).map(recordToPlain_),
-      updatedAt: new Date().toISOString()
-    };
-  } catch (err) {
-    return { error: String((err && err.message) || err) };
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Parça Listesi
+// Parça Listesi (Dashboard da aynı uç noktayı kullanır — KPI/grafik/gruplu
+// tablo agregasyonları artık istemci tarafında, getParcaListesi()'nin
+// döndürdüğü satırlardan hesaplanıyor; bkz. JavaScript.html
+// computeDashboardAggregates(). Bunun nedeni: üstteki genel arama kutusu
+// yazıldıkça anlık olarak yeniden süzülüp/toplanabilsin — sunucuya her
+// tuşta gidip gelmeden.)
 // ---------------------------------------------------------------------------
 
 function getParcaListesi() {

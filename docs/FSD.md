@@ -12,12 +12,22 @@
 ## Ekran: Dashboard (varsayılan açılış)
 
 - Salt-okunur (jenerik-desenler.md "Sinoptik Görünüm" kuralı — form/düzenleme barındırmaz).
+- **Genel Arama** (üstte): virgülle ayrılmış çoklu terim, OR eşleşme, P/N+Plant+Product+
+  Project Type+Status üzerinde. Sayfadaki KPI/grafik/gruplu-tablo/risk-tablosu bu aramaya
+  göre önceden süzülmüş satır kümesinden hesaplanır — her tuş vuruşunda yeniden hesaplanır
+  (istemci tarafı, `computeDashboardAggregates()`).
 - KPI şeridi: Toplam Parça · Toplam Hacim · Toplam EUR · Launched Sayısı · Risk/Gecikme Sayısı.
-- Durum dağılım grafiği (doughnut, `PALETTE`'ten türetilmiş) — dilime tıklamak Parça
-  Listesi'ne o durum filtresiyle gider (`grafikler.md` "grafik = filtre kontrolü").
-- Ürün bazlı hacim grafiği (yatay bar, `indexAxis:'y'`).
-- Risk/Gecikme tablosu: yalnız `risk`/`gecikme` rozetli kayıtlar, P/N sütunu tıklanabilir →
-  Detay Paneli açar.
+- **3 ayrı pasta grafiği** (doughnut, `PALETTE`'ten türetilmiş): Plant (A) dağılımı, Project
+  Type (B) dağılımı, Status (M) dağılımı (ham durum metni — 8'den fazla farklı değer varsa
+  en küçükler "Diğer" dilimine toplanır, o dilim tıklanamaz). Ürün (F) bazlı hacim grafiği
+  (yatay bar, `indexAxis:'y'`). **Dördü de tıklanınca** üstteki genel arama kutusunu tıklanan
+  değerle doldurup sayfayı yerinde yeniden süzer (`grafikler.md` "grafik = filtre kontrolü" —
+  Parça Listesi'ne gitmez, aynı sayfada filtreler).
+- **İki gruplu toplam tablosu**: Diameter (C) × Plant (A) ve Project Type (B) × Product (F)
+  bazında K (OI) toplamı, azalan sırada.
+- Risk/Gecikme tablosu: yalnız `risk`/`gecikme` rozetli kayıtlar, **kendi yerel arama
+  kutusuyla** (genel aramadan bağımsız, yalnız bu tabloyu daraltır). P/N sütunu tıklanabilir
+  → Detay Paneli açar.
 - Veri yüklenemezse (sunucu hatası) KPI kartları sıfır göstermez — "şu an alınamıyor" + Tekrar
   Dene düğmesi (`grafikler.md` "Yüklenemeyen veri ≠ Boş veri").
 

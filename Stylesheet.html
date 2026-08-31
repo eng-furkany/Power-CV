@@ -229,8 +229,8 @@ img { max-width: 100%; }
 .kpi-value { font-size: 26px; font-weight: 700; line-height: 1; color: var(--heading); }
 .kpi-value.attn { color: var(--st-err-fg); }
 
-.chart-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--space-lg); margin-bottom: var(--space-lg); }
-@media (max-width: 900px) { .chart-grid { grid-template-columns: 1fr; } }
+.chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-lg); margin-bottom: var(--space-lg); }
+.chart-title { font-size: var(--fs-lg); font-weight: 700; color: var(--heading); margin-bottom: var(--space-sm); }
 .chart-canvas-wrap { position: relative; width: 100%; height: 220px; }
 .chart-canvas-wrap canvas { display: block; max-width: 100% !important; }
 .chart-no-data { text-align: center; padding: 40px 10px; color: var(--muted); font-size: var(--fs-sm); }
