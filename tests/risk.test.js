@@ -41,6 +41,22 @@ assertEqual(
   'geçmiş Launch Sheet tarihi + henüz Launched değil -> risk'
 );
 
+// computePlanYear_ / computePlanQuarter_ — dashboard'un yıl filtresi ve
+// çeyreklik OI çizgisi bunlara dayanıyor.
+assertEqual(sandbox.computePlanYear_({ status: 'Q1/2027' }), 2027, 'planYear: Q1/2027 -> 2027');
+assertEqual(sandbox.computePlanQuarter_({ status: 'Q1/2027' }), 1, 'planQuarter: Q1/2027 -> 1');
+assertEqual(
+  sandbox.computePlanYear_({ status: 'Launched', launchSheet: new Date('2026-06-01T00:00:00Z') }),
+  2026,
+  'planYear: Launched + Launch Sheet tarihi -> tarihin yılı'
+);
+assertEqual(
+  sandbox.computePlanQuarter_({ status: 'Launched', launchSheet: new Date('2026-06-01T00:00:00Z') }),
+  2,
+  'planQuarter: Haziran (ay 5, 0-index) -> Q2'
+);
+assertEqual(sandbox.computePlanYear_({ status: 'TBD' }), null, 'planYear: ne çeyrek ne tarih -> null');
+
 if (failures > 0) {
   console.error('\n' + failures + ' test başarısız.');
   process.exitCode = 1;

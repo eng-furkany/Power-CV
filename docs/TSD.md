@@ -80,6 +80,26 @@ computeRiskLevel_(row):
 Bu, AI/istatistik gerektirmeyen, ucuz bir "dikkat rozeti" katmanı — dashboard'daki risk
 tablosu ve KPI'daki "Risk/Gecikme" sayacı bu fonksiyonu kullanır.
 
+## Plan Yılı/Çeyreği — Türetilmiş Alan (kolon değil)
+
+Sheet1'de gerçek bir "Yıl" kolonu yok; kullanıcı talebiyle (bu yılın planının gelecek
+yılınkiyle karışmaması) eklenmedi, bunun yerine `Risk.gs`'teki `computePlanYear_`/
+`computePlanQuarter_` mevcut alanlardan türetiyor — aynı `parseQuarter_` yardımcısını
+`computeRiskLevel_` ile paylaşıyor:
+
+```
+computePlanYear_(row):
+  Status "Q#/YYYY" ise           → YYYY
+  aksi halde Launch Sheet varsa  → o tarihin yılı
+  ikisi de yoksa                 → null ("yıl belirsiz")
+```
+
+`getParcaListesi()`/`getParcaDetay()` her satıra `planYear`/`planQuarter` ekler.
+Dashboard'daki yıl segment kontrolü ve çeyreklik OI çizgi grafiği bunları kullanır — gerçek
+bir sheet kolonu eklemek istenirse (`CLAUDE.md`'nin "kolon haritası satır satır taşınmaz"
+notuyla uyumlu) `COLUMN_MAP`'e yeni bir satır eklenip bu iki fonksiyon o kolonu öncelikli
+okuyacak şekilde güncellenebilir — şimdilik türetim yeterli görüldü.
+
 ## Otomasyon — Zamanlanmış Tetikleyici (madde 3)
 
 `_setupApp()` tek seferlik kurulum fonksiyonu bir günlük `ScriptApp.newTrigger` kurar:

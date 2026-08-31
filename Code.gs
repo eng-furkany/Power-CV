@@ -145,7 +145,7 @@ function getParcaListesi() {
   _requireUser_();
   try {
     var rows = _readAllRows_();
-    rows.forEach(function (r) { r.riskLevel = computeRiskLevel_(r); });
+    rows.forEach(function (r) { r.riskLevel = computeRiskLevel_(r); r.planYear = computePlanYear_(r); r.planQuarter = computePlanQuarter_(r); });
     return { ok: true, rows: rows.map(recordToPlain_), columns: COLUMN_MAP, milestoneSuggestions: MILESTONE_SUGGESTIONS };
   } catch (err) {
     return { error: String((err && err.message) || err) };
@@ -162,6 +162,8 @@ function getParcaDetay(pn) {
     }
     if (!found) return { error: 'Kayıt bulunamadı: ' + pn };
     found.riskLevel = computeRiskLevel_(found);
+    found.planYear = computePlanYear_(found);
+    found.planQuarter = computePlanQuarter_(found);
     return { ok: true, record: recordToPlain_(found), columns: COLUMN_MAP, milestoneKeys: MILESTONE_KEYS, milestoneSuggestions: MILESTONE_SUGGESTIONS };
   } catch (err) {
     return { error: String((err && err.message) || err) };

@@ -49,8 +49,9 @@ var T = {
     theme: 'Tema', darkOn: 'Açık', darkOff: 'Koyu',
     kpiTotalParts: 'Toplam Parça', kpiTotalVolume: 'Toplam Hacim', kpiTotalEur: 'Toplam EUR',
     kpiLaunched: 'Launched', kpiRisk: 'Risk / Gecikme',
-    chartPlantTitle: 'Plant Dağılımı', chartProjectTypeTitle: 'Project Type Dağılımı',
-    chartStatusRawTitle: 'Status Dağılımı', chartProductTitle: 'Ürün Bazlı Hacim',
+    chartPlantTitle: 'Plant Dağılımı', chartVolByTypeTitle: 'Project Type Bazlı Hacim',
+    chartOiByTypeTitle: 'Project Type Bazlı Order Intake', chartProductTitle: 'Ürün Bazlı Hacim',
+    quarterlyOiTitle: 'Order Intake', yearFilterLabel: 'Yıl', yearAll: 'Tümü',
     groupedDATitle: 'Diameter × Plant — Toplam OI', groupedTFTitle: 'Project Type × Product — Toplam OI',
     colDiameter: 'Diameter', colProjectType: 'Project Type', colOiSum: 'Toplam OI',
     otherBucket: 'Diğer', filterAppliedToast: 'Filtre uygulandı',
@@ -92,8 +93,9 @@ var T = {
     theme: 'Theme', darkOn: 'Light', darkOff: 'Dark',
     kpiTotalParts: 'Total Parts', kpiTotalVolume: 'Total Volume', kpiTotalEur: 'Total EUR',
     kpiLaunched: 'Launched', kpiRisk: 'Risk / Delay',
-    chartPlantTitle: 'Plant Breakdown', chartProjectTypeTitle: 'Project Type Breakdown',
-    chartStatusRawTitle: 'Status Breakdown', chartProductTitle: 'Volume by Product',
+    chartPlantTitle: 'Plant Breakdown', chartVolByTypeTitle: 'Volume by Project Type',
+    chartOiByTypeTitle: 'Order Intake by Project Type', chartProductTitle: 'Volume by Product',
+    quarterlyOiTitle: 'Order Intake', yearFilterLabel: 'Year', yearAll: 'All',
     groupedDATitle: 'Diameter × Plant — Total OI', groupedTFTitle: 'Project Type × Product — Total OI',
     colDiameter: 'Diameter', colProjectType: 'Project Type', colOiSum: 'Total OI',
     otherBucket: 'Other', filterAppliedToast: 'Filter applied',
@@ -154,7 +156,7 @@ var AppState = {
   darkMode: false,
   lang: 'tr',
   currentPage: 'dashboard',
-  dashboard: { searchInput: '', riskSearch: '', agg: null },
+  dashboard: { searchInput: '', riskSearch: '', agg: null, year: null, qData: null, qYear: null },
   liste: { rows: null, columns: null, filters: {}, search: '', sort: { key: null, dir: 1 } },
   drawer: { open: false, pn: null, listPns: [], record: null, columns: null, milestoneKeys: [], suggestions: [] },
   charts: {}
@@ -378,7 +380,7 @@ function emptyStateHtml(iconName, title, sub, btnsHtml) {
 
 function computeDashboardAggregates(rows) {
   var totalVolume = 0, totalEur = 0, launchedCount = 0, riskCount = 0;
-  var plantCounts = {}, projectTypeCounts = {}, statusRawCounts = {}, productVolume = {};
+  var plantCounts = {}, volByType = {}, oiByType = {}, productVolume = {};
   var groupedDA = {}, groupedTF = {};
   var riskRows = [];
 
@@ -392,19 +394,18 @@ function computeDashboardAggregates(rows) {
     var plantKey = String(r.plant || '—');
     plantCounts[plantKey] = (plantCounts[plantKey] || 0) + 1;
     var typeKey = String(r.projectType || '—');
-    projectTypeCounts[typeKey] = (projectTypeCounts[typeKey] || 0) + 1;
-    var statusKey = String(r.status || '—');
-    statusRawCounts[statusKey] = (statusRawCounts[statusKey] || 0) + 1;
+    volByType[typeKey] = (volByType[typeKey] || 0) + (Number(r.volume) || 0);
+    oiByType[typeKey] = (oiByType[typeKey] || 0) + (Number(r.oi) || 0);
     var prodKey = String(r.product || '—');
     productVolume[prodKey] = (productVolume[prodKey] || 0) + (Number(r.volume) || 0);
 
     // C (Diameter) + A (Plant) bazında K (OI) toplamı.
-    var daKey = String(r.diameter == null ? '—' : r.diameter) + '' + plantKey;
+    var daKey = String(r.diameter == null ? '—' : r.diameter) + '|' + plantKey;
     if (!groupedDA[daKey]) groupedDA[daKey] = { diameter: r.diameter, plant: r.plant, oiSum: 0 };
     groupedDA[daKey].oiSum += Number(r.oi) || 0;
 
     // B (Project Type) + F (Product) bazında K (OI) toplamı.
-    var tfKey = typeKey + '' + prodKey;
+    var tfKey = typeKey + '|' + prodKey;
     if (!groupedTF[tfKey]) groupedTF[tfKey] = { projectType: r.projectType, product: r.product, oiSum: 0 };
     groupedTF[tfKey].oiSum += Number(r.oi) || 0;
   });
@@ -414,8 +415,8 @@ function computeDashboardAggregates(rows) {
   return {
     kpis: { totalParts: rows.length, totalVolume: totalVolume, totalEur: totalEur, launchedCount: launchedCount, riskCount: riskCount },
     plantCounts: bucketTop(plantCounts, 8),
-    projectTypeCounts: bucketTop(projectTypeCounts, 8),
-    statusRawCounts: bucketTop(statusRawCounts, 8),
+    volByType: volByType,
+    oiByType: oiByType,
     productVolume: productVolume,
     groupedDA: Object.keys(groupedDA).map(function (k) { return groupedDA[k]; }).sort(function (a, b) { return b.oiSum - a.oiSum; }),
     groupedTF: Object.keys(groupedTF).map(function (k) { return groupedTF[k]; }).sort(function (a, b) { return b.oiSum - a.oiSum; }),
@@ -436,12 +437,62 @@ function bucketTop(counts, max) {
   return out;
 }
 
+// --------------------------------------------------------------------------
+// Yıl filtresi — planYear/planQuarter sunucuda hesaplanır (Risk.gs
+// computePlanYear_/computePlanQuarter_): Status "Q#/YYYY" ise oradan, aksi
+// halde Launch Sheet tarihinden türer. Varsayılan yıl "Tümü" DEĞIL — bu
+// yılın planı gelecek yılınkiyle karışmasın diye (kullanıcı talebi).
+// --------------------------------------------------------------------------
+
+function availableYears(rows) {
+  var set = {};
+  rows.forEach(function (r) { if (r.planYear) set[r.planYear] = true; });
+  return Object.keys(set).map(Number).sort();
+}
+function defaultYear(years) {
+  if (!years.length) return 'all';
+  var current = new Date().getFullYear();
+  return (years.indexOf(current) > -1) ? current : years[0];
+}
+function computeQuarterlyOI(rows, year) {
+  var qSums = [0, 0, 0, 0];
+  rows.forEach(function (r) {
+    if (r.planYear !== year || !r.planQuarter) return;
+    qSums[r.planQuarter - 1] += Number(r.oi) || 0;
+  });
+  var cumulative = [], running = 0;
+  for (var i = 0; i < 4; i++) { running += qSums[i]; cumulative.push(running); }
+  return { quarterly: qSums, cumulative: cumulative };
+}
+
+function renderYearSegment(years, current) {
+  var html = '<div class="seg-wrap" role="group" aria-label="' + escAttr(t('yearFilterLabel')) + '">';
+  html += '<button class="seg-btn' + (current === 'all' ? ' active' : '') + '" data-year="all">' + t('yearAll') + '</button>';
+  years.forEach(function (y) {
+    html += '<button class="seg-btn' + (current === y ? ' active' : '') + '" data-year="' + y + '">' + y + '</button>';
+  });
+  html += '</div>';
+  return html;
+}
+
 function renderDashboard() {
   var allRows = AppState.liste.rows || [];
+  var years = availableYears(allRows);
+  if (AppState.dashboard.year === null) AppState.dashboard.year = defaultYear(years);
+
   var terms = parseSearchTerms(AppState.dashboard.searchInput);
-  var rows = allRows.filter(function (r) { return rowMatchesTerms(r, terms); });
+  var yearFilter = AppState.dashboard.year;
+  var rows = allRows.filter(function (r) {
+    if (yearFilter !== 'all' && r.planYear !== yearFilter) return false;
+    return rowMatchesTerms(r, terms);
+  });
   var agg = computeDashboardAggregates(rows);
   AppState.dashboard.agg = agg;
+
+  var qYear = (yearFilter === 'all') ? defaultYear(years) : yearFilter;
+  var qData = (qYear === 'all') ? { quarterly: [0, 0, 0, 0], cumulative: [0, 0, 0, 0] } : computeQuarterlyOI(rows, qYear);
+  AppState.dashboard.qData = qData;
+  AppState.dashboard.qYear = qYear;
 
   var riskTerms = parseSearchTerms(AppState.dashboard.riskSearch);
   var riskFiltered = agg.riskRows.filter(function (r) { return rowMatchesTerms(r, riskTerms); });
@@ -449,8 +500,9 @@ function renderDashboard() {
   var root = document.getElementById('dashboard-body');
   var html = '';
 
-  html += '<div class="filter-bar">' +
-    '<div class="filter-group filter-search" style="flex:1 1 260px;">' +
+  html += '<div class="filter-bar">';
+  if (years.length) html += renderYearSegment(years, yearFilter);
+  html += '<div class="filter-group filter-search" style="flex:1 1 260px;">' +
     '<span class="filter-label">' + t('globalSearchLabel') + '</span>' +
     '<input class="fdr-search" id="dash-search" type="search" placeholder="' + escAttr(t('globalSearchPlaceholder')) + '" value="' + escAttr(AppState.dashboard.searchInput) + '" aria-label="' + escAttr(t('globalSearchLabel')) + '"></div>' +
     (terms.length ? '<button class="btn btn-outlined" id="dash-search-clear">' + icon('x', 13) + '<span class="btn-label">' + t('clearFilters') + '</span></button>' : '') +
@@ -465,10 +517,16 @@ function renderDashboard() {
     kpiCard(t('kpiRisk'), fmtNum(k.riskCount), k.riskCount > 0) +
     '</div>';
 
+  if (qYear !== 'all') {
+    html += '<div class="card" style="margin-bottom:var(--space-lg);">' +
+      '<h2 class="chart-title">' + qYear + ' ' + t('quarterlyOiTitle') + ' ⇒ ' + fmtEur(qData.cumulative[3]) + '</h2>' +
+      '<div class="chart-canvas-wrap chart-canvas-wrap-tall"><canvas id="chart-quarterly"></canvas></div></div>';
+  }
+
   html += '<div class="chart-grid">' +
     chartCardHtml('chart-plant', t('chartPlantTitle')) +
-    chartCardHtml('chart-projecttype', t('chartProjectTypeTitle')) +
-    chartCardHtml('chart-statusraw', t('chartStatusRawTitle')) +
+    chartCardHtml('chart-volbytype', t('chartVolByTypeTitle')) +
+    chartCardHtml('chart-oibytype', t('chartOiByTypeTitle')) +
     chartCardHtml('chart-product', t('chartProductTitle')) +
     '</div>';
 
@@ -507,9 +565,10 @@ function renderDashboard() {
   root.innerHTML = html;
   wireDashboardInteractions(riskFiltered);
   drawPieChart('chart-plant', 'plant', agg.plantCounts);
-  drawPieChart('chart-projecttype', 'projecttype', agg.projectTypeCounts);
-  drawPieChart('chart-statusraw', 'statusraw', agg.statusRawCounts);
+  drawVolByTypeChart(agg.volByType);
+  drawOiByTypeChart(agg.oiByType);
   drawProductChart(agg.productVolume);
+  if (qYear !== 'all') drawQuarterlyChart(qData);
 }
 
 function chartCardHtml(canvasId, title) {
@@ -562,6 +621,14 @@ function wireDashboardInteractions(riskFiltered) {
   var riskClearBtn = document.getElementById('dash-risk-search-clear');
   if (riskClearBtn) riskClearBtn.addEventListener('click', function () { AppState.dashboard.riskSearch = ''; renderDashboard(); });
 
+  document.querySelectorAll('#dashboard-body [data-year]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var y = btn.getAttribute('data-year');
+      AppState.dashboard.year = (y === 'all') ? 'all' : Number(y);
+      renderDashboard();
+    });
+  });
+
   document.querySelectorAll('#dashboard-body [data-open-pn]').forEach(function (btn) {
     btn.addEventListener('click', function () {
       openDrawer(btn.getAttribute('data-open-pn'), riskFiltered.map(function (r) { return r.pn; }));
@@ -585,14 +652,25 @@ function applyChartClickFilter(rawLabel) {
 
 var CHART_PALETTE = ['#0072ce', '#76ff03', '#f59e0b', '#8b5cf6', '#ef4444', '#041b3c', '#06b6d4', '#ec4899'];
 
+// Koyu lacivert (#041b3c, --valeo-blue) koyu kart zemininde (--card-bg
+// #1e293b) neredeyse görünmüyor — koyu temada canlı bir renkle değiştir.
+// (Kullanıcı bulgusu: "dark temada yazılar/renkler soluk oluyor.")
+function chartPalette() {
+  var p = CHART_PALETTE.slice();
+  if (AppState.darkMode) p[5] = '#facc15';
+  return p;
+}
+
 function drawPieChart(canvasId, chartKey, counts) {
   var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
   var wrap = canvas.closest('.chart-canvas-wrap');
   var labels = Object.keys(counts || {});
   if (!labels.length) { showChartNoData(wrap, canvas); return; }
   showCanvas(wrap, canvas);
   var values = labels.map(function (l) { return counts[l]; });
-  var colors = labels.map(function (l, i) { return CHART_PALETTE[i % CHART_PALETTE.length]; });
+  var palette = chartPalette();
+  var colors = labels.map(function (l, i) { return palette[i % palette.length]; });
   if (AppState.charts[chartKey]) AppState.charts[chartKey].destroy();
   AppState.charts[chartKey] = new Chart(canvas.getContext('2d'), {
     type: 'doughnut',
@@ -608,17 +686,18 @@ function drawPieChart(canvasId, chartKey, counts) {
   });
 }
 
-function drawProductChart(productVolume) {
-  var canvas = document.getElementById('chart-product');
+function drawBarChart(canvasId, chartKey, dataObj, colorIndex) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
   var wrap = canvas.closest('.chart-canvas-wrap');
-  var labels = Object.keys(productVolume || {});
+  var labels = Object.keys(dataObj || {});
   if (!labels.length) { showChartNoData(wrap, canvas); return; }
   showCanvas(wrap, canvas);
-  var values = labels.map(function (l) { return productVolume[l]; });
-  if (AppState.charts.product) AppState.charts.product.destroy();
-  AppState.charts.product = new Chart(canvas.getContext('2d'), {
+  var values = labels.map(function (l) { return dataObj[l]; });
+  if (AppState.charts[chartKey]) AppState.charts[chartKey].destroy();
+  AppState.charts[chartKey] = new Chart(canvas.getContext('2d'), {
     type: 'bar',
-    data: { labels: labels, datasets: [{ data: values, backgroundColor: CHART_PALETTE[0] }] },
+    data: { labels: labels, datasets: [{ data: values, backgroundColor: chartPalette()[colorIndex] }] },
     options: {
       indexAxis: 'y', responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
@@ -628,8 +707,47 @@ function drawProductChart(productVolume) {
       },
       onClick: function (evt, els) {
         if (!els.length) return;
-        var idx = els[0].index;
-        applyChartClickFilter(labels[idx]);
+        applyChartClickFilter(labels[els[0].index]);
+      }
+    }
+  });
+}
+
+function drawProductChart(productVolume) { drawBarChart('chart-product', 'product', productVolume, 0); }
+function drawVolByTypeChart(volByType) { drawBarChart('chart-volbytype', 'volbytype', volByType, 0); }
+function drawOiByTypeChart(oiByType) { drawBarChart('chart-oibytype', 'oibytype', oiByType, 1); }
+
+// Çeyreklik kümülatif OI çizgisi — "2026 Order Intake ⇒ X €" tarzı referans
+// grafiğin sadeleştirilmiş karşılığı: 4 çeyrek, her nokta o çeyreğe kadarki
+// toplam OI. Tekil proje/anlaşma etiketleri (referanstaki gibi) bu turda yok
+// — veri modelinde onu besleyecek ayrı bir "anlaşma" kaydı yok, yalnız P/N
+// başına tek bir çeyrek değeri var.
+function drawQuarterlyChart(qData) {
+  var canvas = document.getElementById('chart-quarterly');
+  if (!canvas) return;
+  var wrap = canvas.closest('.chart-canvas-wrap');
+  showCanvas(wrap, canvas);
+  if (AppState.charts.quarterly) AppState.charts.quarterly.destroy();
+  var accent = chartPalette()[0];
+  AppState.charts.quarterly = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+      datasets: [{
+        data: qData.cumulative, borderColor: accent, backgroundColor: accent,
+        pointBackgroundColor: accent, pointRadius: 5, pointHoverRadius: 7,
+        borderWidth: 2.5, tension: 0.25, fill: false
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function (ctx) { return fmtEur(ctx.parsed.y); } } }
+      },
+      scales: {
+        x: { ticks: { color: cssVar('--muted'), font: { size: 11 } }, grid: { display: false } },
+        y: { ticks: { color: cssVar('--muted'), font: { size: 10 }, callback: function (v) { return fmtNum(v); } }, grid: { color: 'rgba(148,163,184,0.15)' }, beginAtZero: true }
       }
     }
   });
@@ -646,14 +764,22 @@ function showCanvas(wrap, canvas) {
   var msg = wrap.querySelector('.chart-no-data');
   if (msg) msg.remove();
 }
-function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || getComputedStyle(document.body).getPropertyValue(name).trim(); }
+// body.dark-mode sınıfı BODY üzerinde tanımlı — document.documentElement
+// (<html>) bu override'ı miras ALMAZ (özel property'ler DOM ağacında
+// aşağı doğru kaskad olur, body'deki bir override yukarı <html>'e sızmaz).
+// Önceki sürüm önce documentElement'i okuyordu; bu her zaman AÇIK TEMA
+// değerini döndürüyordu (boş string değil, bu yüzden || yedeği hiç
+// devreye girmiyordu) — koyu modda grafik yazıları soluk/yanlış renkte
+// kalıyordu. Düzeltme: her zaman BODY'den oku.
+function cssVar(name) { return getComputedStyle(document.body).getPropertyValue(name).trim(); }
 function refreshChartsForTheme() {
   var agg = AppState.dashboard.agg;
   if (!agg) return;
   if (AppState.charts.plant) drawPieChart('chart-plant', 'plant', agg.plantCounts);
-  if (AppState.charts.projecttype) drawPieChart('chart-projecttype', 'projecttype', agg.projectTypeCounts);
-  if (AppState.charts.statusraw) drawPieChart('chart-statusraw', 'statusraw', agg.statusRawCounts);
+  if (AppState.charts.volbytype) drawVolByTypeChart(agg.volByType);
+  if (AppState.charts.oibytype) drawOiByTypeChart(agg.oiByType);
   if (AppState.charts.product) drawProductChart(agg.productVolume);
+  if (AppState.charts.quarterly) drawQuarterlyChart(AppState.dashboard.qData);
 }
 
 // --------------------------------------------------------------------------

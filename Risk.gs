@@ -47,3 +47,32 @@ function computeRiskLevel_(record, now) {
 
   return 'ontrack';
 }
+
+/**
+ * Bir kaydın ait olduğu PLAN YILINI türetir — Sheet1'de ayrı bir "Yıl"
+ * kolonu yok (bkz. docs/PRD.md), bu yüzden mevcut alanlardan çıkarsanır:
+ *   1. Status "Q#/YYYY" ise -> YYYY (ör. "Q1/2027" -> 2027)
+ *   2. Aksi halde Launch Sheet tarihi varsa -> o tarihin yılı (Launched
+ *      kayıtlarda Status yalnız "Launched" yazar, yıl bilgisini taşımaz;
+ *      gerçek launch tarihi Launch Sheet'te durur)
+ *   3. İkisi de yoksa -> null ("yıl belirsiz")
+ * Dashboard'daki yıl filtresi (2026/2027/...) bunu kullanır — kullanıcı
+ * isteği: "bu senenin planı gelecek yılınkiyle karışmasın."
+ */
+function computePlanYear_(record) {
+  var qtr = parseQuarter_(record.status);
+  if (qtr) return qtr.y;
+  var launch = record.launchSheet;
+  if (launch instanceof Date && !isNaN(launch.getTime())) return launch.getFullYear();
+  return null;
+}
+
+// computePlanYear_ ile aynı kaynaklardan, ama çeyrek (1-4) döner — yıl
+// içindeki 4 çeyreklik OI çizgi grafiği bunu kullanır.
+function computePlanQuarter_(record) {
+  var qtr = parseQuarter_(record.status);
+  if (qtr) return qtr.q;
+  var launch = record.launchSheet;
+  if (launch instanceof Date && !isNaN(launch.getTime())) return Math.floor(launch.getMonth() / 3) + 1;
+  return null;
+}

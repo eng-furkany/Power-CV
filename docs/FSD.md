@@ -12,17 +12,21 @@
 ## Ekran: Dashboard (varsayılan açılış)
 
 - Salt-okunur (jenerik-desenler.md "Sinoptik Görünüm" kuralı — form/düzenleme barındırmaz).
-- **Genel Arama** (üstte): virgülle ayrılmış çoklu terim, OR eşleşme, P/N+Plant+Product+
-  Project Type+Status üzerinde. Sayfadaki KPI/grafik/gruplu-tablo/risk-tablosu bu aramaya
-  göre önceden süzülmüş satır kümesinden hesaplanır — her tuş vuruşunda yeniden hesaplanır
-  (istemci tarafı, `computeDashboardAggregates()`).
+- **Yıl segment kontrolü** (Tümü/2026/2027/…, `bilesenler.md` Segment Kontrolü) + **Genel
+  Arama** (virgülle ayrılmış çoklu terim, OR eşleşme, P/N+Plant+Product+Project Type+Status
+  üzerinde) aynı satırda. Varsayılan yıl mevcut takvim yılı — "Tümü" değil, kullanıcı talebiyle
+  (bu yılın planı gelecek yılınkiyle karışmasın). Sayfadaki KPI/grafik/gruplu-tablo/risk-tablosu
+  hem yıl hem arama filtresine göre önceden süzülmüş satır kümesinden hesaplanır — her
+  değişiklikte yeniden hesaplanır (istemci tarafı, `computeDashboardAggregates()`).
 - KPI şeridi: Toplam Parça · Toplam Hacim · Toplam EUR · Launched Sayısı · Risk/Gecikme Sayısı.
-- **3 ayrı pasta grafiği** (doughnut, `PALETTE`'ten türetilmiş): Plant (A) dağılımı, Project
-  Type (B) dağılımı, Status (M) dağılımı (ham durum metni — 8'den fazla farklı değer varsa
-  en küçükler "Diğer" dilimine toplanır, o dilim tıklanamaz). Ürün (F) bazlı hacim grafiği
-  (yatay bar, `indexAxis:'y'`). **Dördü de tıklanınca** üstteki genel arama kutusunu tıklanan
-  değerle doldurup sayfayı yerinde yeniden süzer (`grafikler.md` "grafik = filtre kontrolü" —
-  Parça Listesi'ne gitmez, aynı sayfada filtreler).
+- **Çeyreklik OI çizgi grafiği**: seçili yılın Q1-Q4'ü için kümülatif Order Intake (K),
+  başlıkta "{Yıl} Order Intake ⇒ {toplam}". Yıl filtresi "Tümü"yse bile bu grafik tek bir
+  (varsayılan) yılı gösterir — 4 çeyrek yapısı bir yıl gerektirir.
+- **4 grafik** (doughnut/bar karışık, `PALETTE`'ten türetilmiş): Plant (A) dağılımı (doughnut) ·
+  Project Type (B) bazında Hacim (yatay bar) · Project Type (B) bazında Order Intake (yatay
+  bar) · Ürün (F) bazlı hacim (yatay bar). **Dördü de tıklanınca** üstteki genel arama kutusunu
+  tıklanan değerle doldurup sayfayı yerinde yeniden süzer (`grafikler.md` "grafik = filtre
+  kontrolü" — Parça Listesi'ne gitmez, aynı sayfada filtreler).
 - **İki gruplu toplam tablosu**: Diameter (C) × Plant (A) ve Project Type (B) × Product (F)
   bazında K (OI) toplamı, azalan sırada.
 - Risk/Gecikme tablosu: yalnız `risk`/`gecikme` rozetli kayıtlar, **kendi yerel arama
