@@ -40,9 +40,9 @@
 - Üstte filtre barı: Plant / Product / Status için `FilterDrop` çoklu seçim + serbest arama
   kutusu (P/N ve Plant üzerinde, Türkçe karakter-duyarsız normalize ile).
 - Aktif filtre chip'leri, "Filtreyi Temizle" (Boş Ekran şablonuyla aynı isim).
-- Tablo: Plant, P/N, Product, Volume, OI, Status, Launch (Sheet) — görünür varsayılan kolonlar
-  (13+ kolonu mobilde/kart görünümde yönetilebilir tutmak için); geri kalan alanlar Detay
-  Panelinde. Sütun başlığına tıklamak sıralar.
+- Tablo: Plant, P/N, Product, Volume, OI, Status (rozet), Planned (ham Status Planned çeyreği)
+  — görünür varsayılan kolonlar (14+ kolonu mobilde/kart görünümde yönetilebilir tutmak için);
+  geri kalan alanlar (Status Actual dahil) Detay Panelinde. Sütun başlığına tıklamak sıralar.
 - **P/N hücresine tıklamak (veya Enter/Space ile odaklanıp aktive etmek) Detay Panelini açar**
   — gerçek `<button>` üzerinden, `<td onclick>` değil (madde 5: klavye erişimi).
 - ≤768px: tablo `mobileCards()` deseniyle karta döner, her kart P/N'i başlık olarak taşır.
@@ -60,10 +60,11 @@
   Enter/Space) satırı yerinde bir düzenleme kontrolüne çevirir.
   - **Metin/serbest alanlar** (P/N Competitor, Attribute 1/2/3): `<input>`.
   - **Sayısal alanlar** (Volume, OI, Coverage+, EUR): `<input type=number>`.
-  - **Status ve 9 kilometre taşı:** `<input list=… ><datalist>` — Sheet'te gözlemlenen
-    değerlerden (`Done`, `Not Required`, `TBD`, `Q1/2027` gibi) öneri sunar ama serbest yazıma
-    kapatmaz (gerçek veri her zaman sabit bir enum'a uymayabilir).
-  - **Launch Sheet (V, tarih):** `<input type=date>`.
+  - **Status Planned, Status Actual ve 9 kilometre taşı:** `<input list=… ><datalist>` —
+    Sheet'te gözlemlenen değerlerden (`Done`, `Not Required`, `TBD`, `Q1/2027`, `Launched`
+    gibi) öneri sunar ama serbest yazıma kapatmaz (gerçek veri her zaman sabit bir enum'a
+    uymayabilir). Bir proje yalnız **ikisi de** `Launched` yazınca tam tamamlanmış sayılır.
+  - **Launch Sheet (W, tarih):** `<input type=date>`.
 - Bir alan kaydedilince: savebar "Saving…" → "Saved" gösterir, ardından 5 saniyelik Undo
   toast'ı çıkar (geri alması ucuz bir tekli hücre yazımı — `bilesenler.md` Undo Toast
   kuralı). Sunucu hata dönerse savebar "Not saved — try again" gösterir, hücre eski değerine

@@ -32,9 +32,18 @@ Kullanıcı ↔ HtmlService (Index/Stylesheet/JavaScript.html)
 | J | Volume | sayı | |
 | K | OI | sayı | |
 | L | Coverage + | sayı | |
-| M | Status | metin | `Launched` veya hedef çeyrek (`Q4/2026` gibi) veya `Delay`/`Risk`/`On-hold` |
-| N–V | 9 kilometre taşı | metin/tarih | Sample Purchase, Competitor Analysis, Product Definition, Commercial Agreement, Sample Production, Bench testing, Vehicle Test, CRD, Launch Sheet — değerler `Done`/`Not Required`/`TBD`/çeyrek string; **V (Launch Sheet) bir tarih** |
-| AA | EUR | sayı | |
+| M | **Status Planned** | metin | Planlanan bitiş çeyreği (`Q4/2026` gibi) veya `Launched` veya `Delay`/`Risk`/`On-hold` — **2. revizyon**: eskiden tek "Status" kolonuydu |
+| N | **Status Actual** | metin | Gerçekleşen bitiş çeyreği veya `Launched` — **YENİ kolon** (2. revizyon), M ile aynı format |
+| O–W | 9 kilometre taşı | metin/tarih | Sample Purchase, Competitor Analysis, Product Definition, Commercial Agreement, Sample Production, Bench testing, Vehicle Test, CRD, Launch Sheet — değerler `Done`/`Not Required`/`TBD`/çeyrek string; **W (Launch Sheet) bir tarih**. N eklenince bir sağa kaydı (eskiden N–V idi). |
+| AB | EUR | sayı | N eklenince AA'dan kaydı |
+
+**2026-09 revizyonu — M/N kolonları:** Kullanıcı gerçek Sheet'inde tek "Status" (M) kolonunu
+ikiye ayırdı: **Status Planned** (M, aynı kolon yeniden adlandırıldı) ve **Status Actual**
+(N, yeni eklendi) — "planlanan bitiş" ile "gerçekte olan bitiş" ayrı ayrı takip edilsin diye.
+İkisi de aynı format (`Q#/YYYY` çeyrek string'i veya `Launched`/`Delay`/`Risk`/`On-hold`).
+**Bir proje yalnız İKİ kolonda da `Launched` yazıyorsa tam tamamlanmış sayılır** (kullanıcı
+kararı) — yalnız Planned'ın `Launched` olması yetmez. N'nin eklenmesiyle ondan sonraki tüm
+kolonlar (eski N–V, eski AA) bir sağa kaydı; `Code.gs` `COLUMN_MAP` buna göre güncellendi.
 
 **Bilinmeyen/Varsayılan Alanlar:** G/H/I kolonlarının iş kuralı örnek veride belirsizdi (yalnız
 üç ürün tipine özel görünüyor). Bu tur bunları salt görüntüleme/düzenleme alanı olarak ele
@@ -70,11 +79,11 @@ tarayıcıda yapmak için zaten küçük ölçekte.
 
 ```
 computeRiskLevel_(row):
-  Status == 'Launched'                        → 'ontrack'
-  Status /delay|risk|on.?hold/i                → 'risk'   (yüksek)
-  Launch Sheet tarihi geçmişte VE Status ≠ Launched → 'risk'  (gecikmiş lansman)
-  Status bir çeyrek string'i (Q#/YYYY) VE o çeyrek geçmişte → 'gecikme' (uyarı)
-  aksi hâlde                                   → 'ontrack'
+  Status Planned == 'Launched' VE Status Actual == 'Launched'     → 'ontrack'
+  Status Planned veya Actual /delay|risk|on.?hold/i                → 'risk'   (yüksek)
+  Status Planned bir çeyrek (Q#/YYYY), o çeyrek geçmişte
+    VE Status Actual hâlâ 'Launched' değil                        → 'gecikme' (uyarı)
+  aksi hâlde                                                       → 'ontrack'
 ```
 
 Bu, AI/istatistik gerektirmeyen, ucuz bir "dikkat rozeti" katmanı — dashboard'daki risk
@@ -89,9 +98,10 @@ yılınkiyle karışmaması) eklenmedi, bunun yerine `Risk.gs`'teki `computePlan
 
 ```
 computePlanYear_(row):
-  Status "Q#/YYYY" ise           → YYYY
-  aksi halde Launch Sheet varsa  → o tarihin yılı
-  ikisi de yoksa                 → null ("yıl belirsiz")
+  Status Planned "Q#/YYYY" ise    → YYYY
+  aksi halde Status Actual öyleyse → o yıl
+  aksi halde Launch Sheet varsa    → o tarihin yılı
+  hiçbiri yoksa                    → null ("yıl belirsiz")
 ```
 
 `getParcaListesi()`/`getParcaDetay()` her satıra `planYear`/`planQuarter` ekler.
@@ -116,9 +126,10 @@ kullanıcı/oturum sayısını döner, Dashboard'da küçük bir "Kullanım" gö
 ## Minimum Test İskeleti (madde 9)
 
 `tests/risk.test.js` — Node.js mock harness (`SpreadsheetApp` taklidi gerekmeden, saf
-`computeRiskLevel_` mantığı `Code.gs`'ten çıkarılıp test edilebilir hale getirildi) 5
-golden-value senaryosu: Launched, Delay durumu, geçmiş çeyrek, gelecek çeyrek, geçmiş Launch
-Sheet tarihi.
+`Risk.gs` mantığı doğrudan test edilebilir) 13 golden-value senaryosu: `computeRiskLevel_`
+için iki-kolon Launched kombinasyonları (yalnız Planned/ikisi de/hiçbiri), Delay/On-hold,
+geçmiş/gelecek çeyrek, Actual sonradan Launched olma; `computePlanYear_`/`computePlanQuarter_`
+için Planned→Actual→Launch Sheet öncelik sırası ve "hiçbiri yok" durumu.
 
 ## Auth Modeli
 

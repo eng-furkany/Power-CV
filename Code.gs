@@ -21,20 +21,25 @@ var COLUMN_MAP = [
   { key: 'volume',                col: 10, label: 'Volume',               editable: true,  type: 'number' },
   { key: 'oi',                    col: 11, label: 'OI',                   editable: true,  type: 'number' },
   { key: 'coveragePlus',          col: 12, label: 'Coverage +',           editable: true,  type: 'number' },
-  { key: 'status',                col: 13, label: 'Status',               editable: true,  type: 'combo' },
-  { key: 'msSamplePurchase',      col: 14, label: 'Sample Purchase',      editable: true,  type: 'combo' },
-  { key: 'msCompetitorAnalysis',  col: 15, label: 'Competitor Analysis',  editable: true,  type: 'combo' },
-  { key: 'msProductDefinition',   col: 16, label: 'Product Definition',   editable: true,  type: 'combo' },
-  { key: 'msCommercialAgreement', col: 17, label: 'Commercial Agreement', editable: true,  type: 'combo' },
-  { key: 'msSampleProduction',    col: 18, label: 'Sample Production',    editable: true,  type: 'combo' },
-  { key: 'msBenchTesting',        col: 19, label: 'Bench testing',        editable: true,  type: 'combo' },
-  { key: 'msVehicleTest',         col: 20, label: 'Vehicle Test',         editable: true,  type: 'combo' },
-  { key: 'msCRD',                 col: 21, label: 'CRD',                  editable: true,  type: 'combo' },
-  { key: 'launchSheet',           col: 22, label: 'Launch Sheet',         editable: true,  type: 'date' },
-  { key: 'eur',                   col: 27, label: 'EUR',                  editable: true,  type: 'number' }
+  // 2. revizyon (kullanıcı talebi): eski tek "Status" (M) ikiye ayrıldı —
+  // Status Planned (M, aynı kolon, yeniden adlandırıldı) + Status Actual
+  // (N, YENİ kolon). N'den itibaren her şey bir sağa kaydı (eskiden N=14
+  // olan Sample Purchase şimdi O=15, ... eski AA=27 EUR şimdi AB=28).
+  { key: 'statusPlanned',         col: 13, label: 'Status Planned',       editable: true,  type: 'combo' },
+  { key: 'statusActual',          col: 14, label: 'Status Actual',       editable: true,  type: 'combo' },
+  { key: 'msSamplePurchase',      col: 15, label: 'Sample Purchase',      editable: true,  type: 'combo' },
+  { key: 'msCompetitorAnalysis',  col: 16, label: 'Competitor Analysis',  editable: true,  type: 'combo' },
+  { key: 'msProductDefinition',   col: 17, label: 'Product Definition',   editable: true,  type: 'combo' },
+  { key: 'msCommercialAgreement', col: 18, label: 'Commercial Agreement', editable: true,  type: 'combo' },
+  { key: 'msSampleProduction',    col: 19, label: 'Sample Production',    editable: true,  type: 'combo' },
+  { key: 'msBenchTesting',        col: 20, label: 'Bench testing',        editable: true,  type: 'combo' },
+  { key: 'msVehicleTest',         col: 21, label: 'Vehicle Test',         editable: true,  type: 'combo' },
+  { key: 'msCRD',                 col: 22, label: 'CRD',                  editable: true,  type: 'combo' },
+  { key: 'launchSheet',           col: 23, label: 'Launch Sheet',         editable: true,  type: 'date' },
+  { key: 'eur',                   col: 28, label: 'EUR',                  editable: true,  type: 'number' }
 ];
 
-var MAX_COL = 27; // A..AA
+var MAX_COL = 28; // A..AB
 var MILESTONE_KEYS = [
   'msSamplePurchase', 'msCompetitorAnalysis', 'msProductDefinition', 'msCommercialAgreement',
   'msSampleProduction', 'msBenchTesting', 'msVehicleTest', 'msCRD', 'launchSheet'
