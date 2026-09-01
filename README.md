@@ -8,9 +8,15 @@ kaynak kararlar için `docs/PRD.md`, `docs/TSD.md`, `docs/FSD.md`, `docs/layout-
 
 ## Ekranlar
 
-- **Dashboard** — KPI özeti, durum dağılım grafiği, ürün bazlı hacim grafiği, risk/gecikme
-  tablosu.
-- **Parça Listesi** — filtrelenebilir/sıralanabilir tam tablo, mobilde kart görünümü.
+Tek sayfa (2026-09-01 kararı: Parça Listesi artık ayrı bir sekme değil, Dashboard'un
+altına gömülü bir bölüm — üst yönetim sunumu için sadeleştirme talebi):
+
+- **Dashboard** — KPI özeti, yıllık Order Intake çizgi grafiği (varsayılan kompakt, sağ
+  üstteki düğmeyle büyütülebilir), durum dağılım grafiği, ürün bazlı hacim grafiği,
+  Diameter × Plant çapraz tablosu (Plant'lar kolon, Diameter'lar satır — aynı satırda
+  yan yana karşılaştırma), risk/gecikme tablosu.
+- **Parça Listesi** — aynı sayfanın altında, filtrelenebilir/sıralanabilir tam tablo,
+  mobilde kart görünümü.
 - **Detay Paneli** — Parça Listesi'nde veya Dashboard'un risk tablosunda **D kolonundaki
   P/N referansına tıklayınca** sağdan açılan, düzenlenebilir panel (9 kilometre taşı dahil).
 

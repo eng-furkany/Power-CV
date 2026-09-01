@@ -232,8 +232,16 @@ img { max-width: 100%; }
 .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-lg); margin-bottom: var(--space-lg); }
 .chart-title { font-size: var(--fs-lg); font-weight: 700; color: var(--heading); margin-bottom: var(--space-sm); }
 .chart-canvas-wrap { position: relative; width: 100%; height: 220px; }
+.chart-canvas-wrap-compact { height: 140px; }
 .chart-canvas-wrap-tall { height: 300px; }
 .chart-canvas-wrap canvas { display: block; max-width: 100% !important; }
+
+/* Büyüt/küçült düğmesi taşıyan grafik başlığı (ör. yıllık Order Intake
+   çizgi grafiği) — kullanıcı talebi: varsayılan kompakt, isteyen büyütsün. */
+.chart-hd { display: flex; align-items: center; justify-content: space-between; gap: var(--space-sm); margin-bottom: var(--space-sm); flex-wrap: wrap; }
+.chart-toggle-btn { background: none; border: none; cursor: pointer; color: var(--muted); width: 28px; height: 28px; flex: none; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); }
+.chart-toggle-btn:hover { background: var(--sunken); }
+.chart-toggle-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; }
 
 /* Segment Kontrolü (bilesenler.md) — birbirini dışlayan, az sayıda seçenek
    arasında geçiş (ör. Dashboard'un yıl filtresi). */

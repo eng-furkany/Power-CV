@@ -53,8 +53,9 @@ var T = {
     chartOiByTypeTitle: 'Project Type Bazlı Order Intake', chartProductTitle: 'Ürün Bazlı Hacim',
     quarterlyOiTitle: 'Order Intake', yearFilterLabel: 'Yıl', yearAll: 'Tümü',
     groupedDATitle: 'Diameter × Plant — Toplam OI', groupedTFTitle: 'Project Type × Product — Toplam OI',
-    colDiameter: 'Diameter', colProjectType: 'Project Type', colOiSum: 'Toplam OI',
+    colDiameter: 'Diameter', colProjectType: 'Project Type', colOiSum: 'Toplam OI', colTotal: 'Toplam',
     otherBucket: 'Diğer', filterAppliedToast: 'Filtre uygulandı',
+    expandChart: 'Grafiği büyüt', collapseChart: 'Grafiği küçült',
     globalSearchLabel: 'Genel Arama',
     globalSearchPlaceholder: 'P/N, Plant, Product, Project Type, Status Planned/Actual ara — virgülle birden çok değer yazabilirsiniz',
     colPlanned: 'Planned',
@@ -98,8 +99,9 @@ var T = {
     chartOiByTypeTitle: 'Order Intake by Project Type', chartProductTitle: 'Volume by Product',
     quarterlyOiTitle: 'Order Intake', yearFilterLabel: 'Year', yearAll: 'All',
     groupedDATitle: 'Diameter × Plant — Total OI', groupedTFTitle: 'Project Type × Product — Total OI',
-    colDiameter: 'Diameter', colProjectType: 'Project Type', colOiSum: 'Total OI',
+    colDiameter: 'Diameter', colProjectType: 'Project Type', colOiSum: 'Total OI', colTotal: 'Total',
     otherBucket: 'Other', filterAppliedToast: 'Filter applied',
+    expandChart: 'Expand chart', collapseChart: 'Collapse chart',
     globalSearchLabel: 'Global Search',
     globalSearchPlaceholder: 'Search P/N, Plant, Product, Project Type, Status Planned/Actual — comma-separate for multiple values',
     colPlanned: 'Planned',
@@ -159,7 +161,7 @@ var AppState = {
   darkMode: false,
   lang: 'tr',
   currentPage: 'dashboard',
-  dashboard: { searchInput: '', riskSearch: '', agg: null, year: null, qData: null, qYear: null },
+  dashboard: { searchInput: '', riskSearch: '', agg: null, year: null, qData: null, qYear: null, oiExpanded: false },
   liste: { rows: null, columns: null, filters: {}, search: '', sort: { key: null, dir: 1 } },
   drawer: { open: false, pn: null, listPns: [], record: null, columns: null, milestoneKeys: [], suggestions: [] },
   charts: {}
@@ -260,8 +262,7 @@ function setLanguage(lang, persist) {
   // Sayfa zaten yüklenmişse yeniden çiz — sabit metinlerin YANI SIRA dinamik
   // içerik de (KPI etiketleri, tablo başlıkları, rozetler) t()'den geçmeli
   // (Eksik #2 kapatıldı).
-  if (AppState.currentPage === 'dashboard' && AppState.dashboard) renderDashboard();
-  if (AppState.currentPage === 'liste' && AppState.liste.rows) renderListe();
+  if (AppState.liste.rows) { renderDashboard(); renderListe(); }
   if (AppState.drawer.open) renderDrawer();
 }
 
@@ -299,10 +300,12 @@ function navigateTo(page) {
   document.querySelectorAll('[data-nav]').forEach(function (el) {
     el.classList.toggle('active', el.getAttribute('data-nav') === page);
   });
-  document.getElementById('hdr-page-title').textContent = (page === 'dashboard') ? t('navDashboard') : t('navListe');
+  document.getElementById('hdr-page-title').textContent = t('navDashboard');
 
-  if (page === 'dashboard') loadDashboard(false);
-  if (page === 'liste') loadListe(false);
+  // Parça Listesi artık ayrı bir sayfa değil, Dashboard'un altına gömülü tek
+  // bir bölüm (kullanıcı talebi) — ikisi de aynı anda yüklenir.
+  loadDashboard(false);
+  loadListe(false);
 }
 
 // --------------------------------------------------------------------------
@@ -381,10 +384,15 @@ function emptyStateHtml(iconName, title, sub, btnsHtml) {
 // gruplu tablolar/risk tablosu) yalnız süzülmüş alt kümeyi görür.
 // --------------------------------------------------------------------------
 
+// Diameter × Plant tablosu en fazla bu kadar Plant kolonu açar — kalanı
+// (varsa) tek bir "Diğer" kolonunda toplar (bucketTop'la aynı savunmacı
+// desen, çok fazla ince sütun okunmaz oluyor).
+var GROUPED_DA_MAX_PLANT_COLS = 6;
+
 function computeDashboardAggregates(rows) {
   var totalVolume = 0, totalEur = 0, launchedCount = 0, riskCount = 0;
   var plantCounts = {}, volByType = {}, oiByType = {}, productVolume = {};
-  var groupedDA = {}, groupedTF = {};
+  var groupedDACells = {}, diameterTotals = {}, plantTotals = {}, groupedTF = {};
   var riskRows = [];
 
   rows.forEach(function (r) {
@@ -402,10 +410,15 @@ function computeDashboardAggregates(rows) {
     var prodKey = String(r.product || '—');
     productVolume[prodKey] = (productVolume[prodKey] || 0) + (Number(r.volume) || 0);
 
-    // C (Diameter) + A (Plant) bazında K (OI) toplamı.
-    var daKey = String(r.diameter == null ? '—' : r.diameter) + '|' + plantKey;
-    if (!groupedDA[daKey]) groupedDA[daKey] = { diameter: r.diameter, plant: r.plant, oiSum: 0 };
-    groupedDA[daKey].oiSum += Number(r.oi) || 0;
+    // C (Diameter) + A (Plant) bazında K (OI) toplamı — Diameter satır,
+    // Plant kolon olacak şekilde bir çapraz tablo (pivot) besleniyor
+    // (kullanıcı talebi: Amiens/Bursa aynı satırda hizalı, diğer Diameter
+    // değerleri de ayrı satırlarda görülebilsin).
+    var diamKey = String(r.diameter == null ? '—' : r.diameter);
+    var daCellKey = diamKey + '|' + plantKey;
+    groupedDACells[daCellKey] = (groupedDACells[daCellKey] || 0) + (Number(r.oi) || 0);
+    diameterTotals[diamKey] = (diameterTotals[diamKey] || 0) + (Number(r.oi) || 0);
+    plantTotals[plantKey] = (plantTotals[plantKey] || 0) + (Number(r.oi) || 0);
 
     // B (Project Type) + F (Product) bazında K (OI) toplamı.
     var tfKey = typeKey + '|' + prodKey;
@@ -415,13 +428,33 @@ function computeDashboardAggregates(rows) {
 
   riskRows.sort(function (a, b) { return (a.riskLevel === 'risk' ? 0 : 1) - (b.riskLevel === 'risk' ? 0 : 1); });
 
+  // Plant kolonlarını toplam OI'ye göre sırala, en büyük N tanesini kolon
+  // yap — geri kalanı (varsa) "Diğer" kolonunda topla. Diameter satırları da
+  // en büyük toplamdan küçüğe sıralanır (mevcut davranışla tutarlı).
+  var plantEntries = Object.keys(plantTotals).map(function (k) { return [k, plantTotals[k]]; });
+  plantEntries.sort(function (a, b) { return b[1] - a[1]; });
+  var daPlantCols = plantEntries.slice(0, GROUPED_DA_MAX_PLANT_COLS).map(function (e) { return e[0]; });
+  var daOtherPlants = plantEntries.slice(GROUPED_DA_MAX_PLANT_COLS);
+  var daHasOther = daOtherPlants.length > 0;
+
+  var daDiameterKeys = Object.keys(diameterTotals).sort(function (a, b) { return diameterTotals[b] - diameterTotals[a]; });
+  var groupedDA = {
+    plantCols: daPlantCols,
+    hasOtherPlants: daHasOther,
+    rows: daDiameterKeys.map(function (d) {
+      var cells = daPlantCols.map(function (p) { return groupedDACells[d + '|' + p] || 0; });
+      var otherSum = daHasOther ? daOtherPlants.reduce(function (s, e) { return s + (groupedDACells[d + '|' + e[0]] || 0); }, 0) : 0;
+      return { diameter: d, cells: cells, otherSum: otherSum, total: diameterTotals[d] };
+    })
+  };
+
   return {
     kpis: { totalParts: rows.length, totalVolume: totalVolume, totalEur: totalEur, launchedCount: launchedCount, riskCount: riskCount },
     plantCounts: bucketTop(plantCounts, 8),
     volByType: volByType,
     oiByType: oiByType,
     productVolume: productVolume,
-    groupedDA: Object.keys(groupedDA).map(function (k) { return groupedDA[k]; }).sort(function (a, b) { return b.oiSum - a.oiSum; }),
+    groupedDA: groupedDA,
     groupedTF: Object.keys(groupedTF).map(function (k) { return groupedTF[k]; }).sort(function (a, b) { return b.oiSum - a.oiSum; }),
     riskRows: riskRows.slice(0, 50)
   };
@@ -521,9 +554,17 @@ function renderDashboard() {
     '</div>';
 
   if (qYear !== 'all') {
+    // Kullanıcı talebi: bu grafik tam genişlikte + 300px ile çok yer
+    // kaplıyordu — varsayılan artık kompakt (140px), sağ üstteki düğmeyle
+    // isteyen büyütüp tekrar küçültebiliyor (chart-hd + chart-toggle-btn).
+    var oiExpanded = !!AppState.dashboard.oiExpanded;
     html += '<div class="card" style="margin-bottom:var(--space-lg);">' +
-      '<h2 class="chart-title">' + qYear + ' ' + t('quarterlyOiTitle') + ' ⇒ ' + fmtEur(qData.cumulative[3]) + '</h2>' +
-      '<div class="chart-canvas-wrap chart-canvas-wrap-tall"><canvas id="chart-quarterly"></canvas></div></div>';
+      '<div class="chart-hd">' +
+      '<h2 class="chart-title" style="margin-bottom:0;">' + qYear + ' ' + t('quarterlyOiTitle') + ' ⇒ ' + fmtEur(qData.cumulative[3]) + '</h2>' +
+      '<button class="chart-toggle-btn" id="oi-toggle" aria-label="' + escAttr(oiExpanded ? t('collapseChart') : t('expandChart')) + '" title="' + escAttr(oiExpanded ? t('collapseChart') : t('expandChart')) + '">' +
+      icon(oiExpanded ? 'chevronUp' : 'chevronDown', 16) + '</button>' +
+      '</div>' +
+      '<div class="chart-canvas-wrap ' + (oiExpanded ? 'chart-canvas-wrap-tall' : 'chart-canvas-wrap-compact') + '"><canvas id="chart-quarterly"></canvas></div></div>';
   }
 
   html += '<div class="chart-grid">' +
@@ -533,9 +574,7 @@ function renderDashboard() {
     chartCardHtml('chart-product', t('chartProductTitle')) +
     '</div>';
 
-  html += groupedTableHtml(t('groupedDATitle'), ['colDiameter', 'colPlant', 'colOiSum'], agg.groupedDA, function (row) {
-    return [escHtml(row.diameter == null ? '—' : row.diameter), escHtml(row.plant || '—'), fmtNum(row.oiSum)];
-  });
+  html += groupedDAPivotHtml(t('groupedDATitle'), agg.groupedDA);
   html += groupedTableHtml(t('groupedTFTitle'), ['colProjectType', 'colProduct', 'colOiSum'], agg.groupedTF, function (row) {
     return [escHtml(row.projectType || '—'), escHtml(row.product || '—'), fmtNum(row.oiSum)];
   });
@@ -577,6 +616,30 @@ function renderDashboard() {
 function chartCardHtml(canvasId, title) {
   return '<div class="card"><h2 class="chart-title">' + title + '</h2>' +
     '<div class="chart-canvas-wrap"><canvas id="' + canvasId + '"></canvas></div></div>';
+}
+
+// Diameter (satır) × Plant (kolon) çapraz tablosu — kullanıcı talebi:
+// Amiens/Bursa gibi Plant değerleri aynı satırda yan yana hizalı görünsün,
+// diğer Diameter değerleri de kaybolmadan alt satırlarda kalsın.
+function groupedDAPivotHtml(title, pivot) {
+  var html = '<div class="card" style="margin-bottom:var(--space-lg);"><h2 class="chart-title">' + title + '</h2>';
+  if (!pivot.rows.length) {
+    html += emptyStateHtml('search', t('listEmptyTitle'), t('listEmptySub'), '');
+  } else {
+    html += '<div class="tbl-wrap"><table class="dt"><thead><tr><th>' + t('colDiameter') + '</th>';
+    pivot.plantCols.forEach(function (p) { html += '<th class="cf-num">' + escHtml(p || '—') + '</th>'; });
+    if (pivot.hasOtherPlants) html += '<th class="cf-num">' + t('otherBucket') + '</th>';
+    html += '<th class="cf-num">' + t('colTotal') + '</th></tr></thead><tbody>';
+    pivot.rows.forEach(function (row) {
+      html += '<tr><td>' + escHtml(row.diameter) + '</td>';
+      row.cells.forEach(function (v) { html += '<td class="cf-num">' + (v ? fmtNum(v) : '—') + '</td>'; });
+      if (pivot.hasOtherPlants) html += '<td class="cf-num">' + (row.otherSum ? fmtNum(row.otherSum) : '—') + '</td>';
+      html += '<td class="cf-num" style="font-weight:700;">' + fmtNum(row.total) + '</td></tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+  html += '</div>';
+  return html;
 }
 
 function groupedTableHtml(title, colKeys, rows, rowFn) {
@@ -623,6 +686,14 @@ function wireDashboardInteractions(riskFiltered) {
   }
   var riskClearBtn = document.getElementById('dash-risk-search-clear');
   if (riskClearBtn) riskClearBtn.addEventListener('click', function () { AppState.dashboard.riskSearch = ''; renderDashboard(); });
+
+  var oiToggle = document.getElementById('oi-toggle');
+  if (oiToggle) {
+    oiToggle.addEventListener('click', function () {
+      AppState.dashboard.oiExpanded = !AppState.dashboard.oiExpanded;
+      renderDashboard();
+    });
+  }
 
   document.querySelectorAll('#dashboard-body [data-year]').forEach(function (btn) {
     btn.addEventListener('click', function () {
@@ -1245,8 +1316,8 @@ function saveField(key, newValue) {
     // tablosu) düzenlenen satırı zaten güncellenmiş önbellekten okuyacak —
     // yalnız az önce yazdık diye "kaydedildi" gösterip arka planı bayat
     // bırakmamak için burada da yeniden çiziyoruz.
-    if (AppState.currentPage === 'dashboard') renderDashboard();
-    if (AppState.currentPage === 'liste') renderListe();
+    renderDashboard();
+    renderListe();
     var label = fieldLabelKey(key);
     toastUndo(t('saved') + ': ' + label, function () {
       gsCall('updateParcaField', [rec.pn, key, res.oldValue], function (undoRes) {
@@ -1256,8 +1327,8 @@ function saveField(key, newValue) {
           if (row2) row2[key] = undoRes.newValue;
         }
         renderDrawer();
-        if (AppState.currentPage === 'dashboard') renderDashboard();
-        if (AppState.currentPage === 'liste') renderListe();
+        renderDashboard();
+        renderListe();
         showToast(t('undoDone'), 'success');
       }, function () { showToast(t('undoFailed'), 'error'); });
     });
