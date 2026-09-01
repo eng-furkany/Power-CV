@@ -26,7 +26,8 @@ var ICON_PATHS = {
   edit: '<path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/>',
   undo: '<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>',
   refresh: '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>',
-  refreshCw: '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>'
+  refreshCw: '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>',
+  messageSquare: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'
 };
 
 function icon(name, size) {
@@ -74,12 +75,13 @@ var T = {
   filterProjectStatus: 'Project Status', fieldProjectStatus: 'Project Status',
   statusLaunched: 'Launched', statusPlanned: 'Planned', statusDelay: 'Delay', statusRisk: 'Risk/Delay',
   drawerTitle: 'Part Detail', drawerOpenedElsewhere: 'Opened from a different list',
-  drawerSecIdentity: 'Identity', drawerSecCommercial: 'Commercial', drawerSecMilestones: 'Milestones',
+  drawerSecIdentity: 'Identity', drawerSecCommercial: 'Commercial', drawerSecMilestones: 'Milestones', drawerSecComment: 'Comment',
   fieldPlant: 'Plant', fieldProjectType: 'Project Type', fieldDiameter: 'Diameter', fieldPn: 'P/N',
   fieldPnCompetitor: 'P/N Competitor', fieldProduct: 'Product',
   fieldAttrPPCA: 'Attribute (PPCA)', fieldAttrDisc: 'Attribute (Disc)', fieldAttrRB: 'Attribute (RB)',
   fieldVolume: 'Volume', fieldOi: 'OI', fieldOiActual: 'OI Actual', fieldCoveragePlus: 'Coverage +',
   fieldEur: 'EUR (€)', fieldStatusPlanned: 'Status Planned', fieldStatusActual: 'Status Actual',
+  fieldComment: 'Comment', commentPlaceholder: 'Add a comment…', noComment: 'No comment yet.',
   msSamplePurchase: 'Sample Purchase', msCompetitorAnalysis: 'Competitor Analysis',
   msProductDefinition: 'Product Definition', msCommercialAgreement: 'Commercial Agreement',
   msSampleProduction: 'Sample Production', msBenchTesting: 'Bench testing', msVehicleTest: 'Vehicle Test',
@@ -250,7 +252,7 @@ function parseSearchTerms(str) {
   return String(str || '').split(',').map(function (s) { return _norm(s.trim()); }).filter(Boolean);
 }
 function rowSearchHay(r) {
-  return _norm([r.pn, r.plant, r.product, r.projectType, r.statusPlanned, r.statusActual].join(' '));
+  return _norm([r.pn, r.plant, r.product, r.projectType, r.statusPlanned, r.statusActual, r.comment].join(' '));
 }
 function rowMatchesTerms(r, terms) {
   if (!terms || !terms.length) return true;
@@ -584,11 +586,15 @@ function renderDashboard() {
   } else {
     html += '<div class="tbl-wrap"><table class="dt"><thead><tr>' +
       '<th>' + colLabel('pn') + '</th><th>' + colLabel('plant') + '</th><th>' + colLabel('product') + '</th>' +
+      '<th>' + colLabel('projectType') + '</th>' +
       '<th class="cf-num">' + colLabel('volume') + '</th><th>' + colLabel('status') + '</th></tr></thead><tbody>';
     riskFiltered.forEach(function (r) {
       html += '<tr>' +
-        '<td><button class="pn-link" data-open-pn="' + escAttr(r.pn) + '">' + escHtml(r.pn) + '</button></td>' +
+        '<td><button class="pn-link" data-open-pn="' + escAttr(r.pn) + '">' + escHtml(r.pn) + '</button>' +
+        (r.comment ? '<span class="comment-flag" title="' + escAttr(r.comment) + '">' + icon('messageSquare', 14) + '</span>' : '') +
+        '</td>' +
         '<td>' + escHtml(r.plant) + '</td><td>' + escHtml(r.product) + '</td>' +
+        '<td>' + escHtml(r.projectType || '—') + '</td>' +
         '<td class="cf-num">' + fmtNum(r.volume) + '</td>' +
         '<td>' + riskChip(r.riskLevel, /launched/i.test(String(r.statusPlanned || '')) && /launched/i.test(String(r.statusActual || ''))) + '</td>' +
         '</tr>';
@@ -998,7 +1004,8 @@ function renderListe() {
         var cell;
         if (key === 'pn') {
           cell = '<button class="pn-link" data-open-pn="' + escAttr(r.pn) + '">' + escHtml(r.pn) + '</button>' +
-            (r.riskLevel !== 'ontrack' ? '<span class="risk-flag" title="' + (r.riskLevel === 'risk' ? t('statusRisk') : t('statusDelay')) + '">' + icon('alertTriangle', 14) + '</span>' : '');
+            (r.riskLevel !== 'ontrack' ? '<span class="risk-flag" title="' + (r.riskLevel === 'risk' ? t('statusRisk') : t('statusDelay')) + '">' + icon('alertTriangle', 14) + '</span>' : '') +
+            (r.comment ? '<span class="comment-flag" title="' + escAttr(r.comment) + '">' + icon('messageSquare', 14) + '</span>' : '');
         } else if (key === 'status') {
           cell = riskChip(r.riskLevel, r.statusCategory === 'Launched');
         } else if (key === 'statusPlanned') {
@@ -1042,7 +1049,7 @@ function unitFor(key) {
 }
 
 function colLabel(key) {
-  var fallbackMap = { plant: 'colPlant', pn: 'colPn', product: 'colProduct', volume: 'colVolume', oi: 'colOi', status: 'colStatus', statusPlanned: 'colPlanned', launchSheet: 'colLaunch', projectStatus: 'colProjectStatus' };
+  var fallbackMap = { plant: 'colPlant', pn: 'colPn', product: 'colProduct', projectType: 'colProjectType', volume: 'colVolume', oi: 'colOi', status: 'colStatus', statusPlanned: 'colPlanned', launchSheet: 'colLaunch', projectStatus: 'colProjectStatus' };
   if (key === 'status') return t('colStatus'); // risk rozeti — türetilmiş, gerçek bir Sheet kolonu değil
   return sheetLabelFor(key, fallbackMap[key] || key);
 }
@@ -1284,6 +1291,11 @@ function renderDrawer() {
   (AppState.drawer.milestoneKeys || []).forEach(function (key) { html += propRow(key, 'checkCircle'); });
   html += '</div>';
 
+  // Z kolonu (kullanıcı talebi): serbest metin proje yorumu — kendi
+  // bölümünde, tam genişlikte (bkz. propRow'daki 'textarea' tipi).
+  html += '<div class="drawer-sec">' + t('drawerSecComment') + '</div>';
+  html += propRow('comment', 'messageSquare');
+
   body.innerHTML = html;
   wireDrawerEdits();
 }
@@ -1294,7 +1306,7 @@ function fieldLabelKey(key) {
     pnCompetitor: 'fieldPnCompetitor', product: 'fieldProduct',
     attrPPCA: 'fieldAttrPPCA', attrDisc: 'fieldAttrDisc', attrRB: 'fieldAttrRB',
     volume: 'fieldVolume', oi: 'fieldOi', oiActual: 'fieldOiActual', coveragePlus: 'fieldCoveragePlus', eur: 'fieldEur',
-    projectStatus: 'fieldProjectStatus',
+    projectStatus: 'fieldProjectStatus', comment: 'fieldComment',
     statusPlanned: 'fieldStatusPlanned', statusActual: 'fieldStatusActual',
     msSamplePurchase: 'msSamplePurchase', msCompetitorAnalysis: 'msCompetitorAnalysis',
     msProductDefinition: 'msProductDefinition', msCommercialAgreement: 'msCommercialAgreement',
@@ -1309,22 +1321,25 @@ function propRow(key, iconName) {
   var col = drawerColByKey(key);
   var label = fieldLabelKey(key);
   var raw = rec[key];
+  var isTextarea = col && col.type === 'textarea';
   var displayVal;
   if (col && col.type === 'date') displayVal = fmtDate(raw);
   else if (col && col.type === 'number') displayVal = (raw === '' || raw == null) ? '—' : fmtNum(raw);
   else if (col && col.type === 'combo') displayVal = lexLabel(raw) || '—';
+  else if (isTextarea) displayVal = (raw === '' || raw == null) ? '<span class="prop-empty-hint">' + t('noComment') + '</span>' : escHtml(raw);
   else displayVal = (raw === '' || raw == null) ? '—' : escHtml(raw);
 
   var editable = col && col.editable;
   var valueHtml;
   if (editable) {
-    valueHtml = '<button class="prop-btn" data-prop="' + key + '">' + '<span>' + displayVal + '</span>' +
+    valueHtml = '<button class="prop-btn' + (isTextarea ? ' prop-btn-block' : '') + '" data-prop="' + key + '">' +
+      '<span class="' + (isTextarea ? 'comment-text' : '') + '">' + displayVal + '</span>' +
       '<span class="edit-icon">' + icon('edit', 14) + '</span></button>';
   } else {
     valueHtml = '<div class="prop-static">' + displayVal + '</div>';
   }
 
-  return '<div class="prop-row" data-prop-row="' + key + '">' +
+  return '<div class="prop-row' + (isTextarea ? ' prop-row-block' : '') + '" data-prop-row="' + key + '">' +
     '<span class="prop-icon">' + icon(iconName, 18) + '</span>' +
     '<label class="prop-label" for="propctl-' + key + '">' + label + '</label>' +
     '<span class="prop-value-wrap">' + valueHtml + '</span></div>';
@@ -1359,6 +1374,11 @@ function activateEdit(key) {
     var dv = raw ? new Date(raw) : null;
     var iso = (dv && !isNaN(dv.getTime())) ? dv.toISOString().slice(0, 10) : '';
     inputHtml = '<input class="prop-input" id="propctl-' + key + '" type="date" value="' + iso + '" data-autofocus>';
+  } else if (col.type === 'textarea') {
+    // Serbest metin yorum (kullanıcı talebi, Z kolonu) — çok satırlı
+    // olabilir, bu yüzden Enter burada kaydetmiyor (aşağıdaki keydown),
+    // yalnız blur veya Ctrl/Cmd+Enter kaydeder.
+    inputHtml = '<textarea class="prop-input prop-textarea" id="propctl-' + key + '" placeholder="' + escAttr(t('commentPlaceholder')) + '" data-autofocus>' + escHtml(raw == null ? '' : raw) + '</textarea>';
   } else {
     inputHtml = '<input class="prop-input" id="propctl-' + key + '" type="' + inputType + '" value="' + escAttr(raw == null ? '' : raw) + '" data-autofocus>';
   }
@@ -1371,7 +1391,8 @@ function activateEdit(key) {
   var commit = function () { saveField(key, input.value); };
   input.addEventListener('blur', commit);
   input.addEventListener('keydown', function (ev) {
-    if (ev.key === 'Enter') { ev.preventDefault(); input.blur(); }
+    if (ev.key === 'Enter' && col.type === 'textarea' && (ev.metaKey || ev.ctrlKey)) { ev.preventDefault(); input.blur(); }
+    else if (ev.key === 'Enter' && col.type !== 'textarea') { ev.preventDefault(); input.blur(); }
     if (ev.key === 'Escape') { ev.preventDefault(); input.removeEventListener('blur', commit); renderDrawer(); }
   });
 }

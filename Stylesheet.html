@@ -383,6 +383,20 @@ img { max-width: 100%; }
   background: var(--surface-dim); color: var(--text);
 }
 
+/* Serbest metin yorum (Z kolonu, kullanıcı talebi) — tam genişlikte,
+   etiket üstte/değer altta bir blok; diğer prop-row'lar gibi tek satır
+   flex değil, çünkü içerik çok satırlı olabilir. */
+.prop-row-block { display: block; }
+.prop-row-block .prop-icon { display: inline-block; vertical-align: middle; margin-right: 6px; }
+.prop-row-block .prop-label { display: inline-block; flex: none; margin-bottom: 6px; }
+.prop-btn-block { display: block; width: 100%; }
+.comment-text { white-space: pre-wrap; display: block; }
+.prop-empty-hint { color: var(--faint); font-style: italic; }
+.prop-textarea { height: auto; min-height: 72px; padding: 8px 10px; resize: vertical; font-family: inherit; }
+
+.comment-flag { color: var(--muted); margin-left: 4px; vertical-align: -2px; }
+.comment-flag svg { width: 14px; height: 14px; stroke: currentColor; fill: none; }
+
 .milestone-list { display: flex; flex-direction: column; gap: 0; }
 .risk-banner {
   display: flex; align-items: center; gap: 8px; padding: 10px 12px;

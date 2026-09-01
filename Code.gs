@@ -47,6 +47,12 @@ var COLUMN_MAP = [
   // kolon + filtre olarak gösterilir (bkz. JavaScript.html VISIBLE_COLS/
   // FILTERABLE).
   { key: 'projectStatus',         col: 25, label: 'Project Status',      editable: true,  type: 'combo' },
+  // Z kolonu (kullanıcı talebi): projeyle ilgili serbest metin yorumlar —
+  // Status Planned/Actual gibi sabit bir enum değil, çok satırlı olabilir.
+  // Detay Panelinde ayrı bir "Comment" bölümü (textarea) olarak, Dashboard'un
+  // Risk/Gecikme tablosunda ve Parça Listesi'nde de küçük bir ikonla
+  // gösterilir (bkz. JavaScript.html propRow'daki 'textarea' tipi).
+  { key: 'comment',               col: 26, label: 'Comment',              editable: true,  type: 'textarea' },
   { key: 'eur',                   col: 28, label: 'EUR',                  editable: true,  type: 'number' }
 ];
 
