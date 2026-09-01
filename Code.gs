@@ -134,6 +134,22 @@ function recordToPlain_(rec) {
   return out;
 }
 
+// Kullanıcı talebi (2026-09-01): tablolardaki sayılar kendi biriminin
+// yanında görünsün — birimi biz uydurmuyoruz, Sheet'in 1. satırındaki
+// GERÇEK başlık metnini okuyup COLUMN_MAP'in sabit `label`'ının YERİNE
+// (varsa) kullanıyoruz. Kullanıcı bir kolonun başlığına "Coverage + (%)"
+// gibi birim eklerse, bu otomatik olarak Parça Listesi/Detay Paneli/
+// gruplu tablolarda ve KPI'larda görünür — hardcode edilmiş bir varsayım
+// (ör. önceki turdaki "Coverage = yüzde" varsayımı) tekrarlanmaz.
+function _columnsWithHeaders_() {
+  var sh = _sheet_();
+  var headerRow = sh.getRange(1, 1, 1, MAX_COL).getValues()[0];
+  return COLUMN_MAP.map(function (c) {
+    var h = String(headerRow[c.col - 1] == null ? '' : headerRow[c.col - 1]).trim();
+    return { key: c.key, col: c.col, label: c.label, editable: c.editable, type: c.type, sheetLabel: h || c.label };
+  });
+}
+
 function _readAllRows_() {
   var sh = _sheet_();
   var last = sh.getLastRow();
@@ -162,7 +178,7 @@ function getParcaListesi() {
   try {
     var rows = _readAllRows_();
     rows.forEach(function (r) { r.riskLevel = computeRiskLevel_(r); r.planYear = computePlanYear_(r); r.planQuarter = computePlanQuarter_(r); });
-    return { ok: true, rows: rows.map(recordToPlain_), columns: COLUMN_MAP, milestoneSuggestions: MILESTONE_SUGGESTIONS };
+    return { ok: true, rows: rows.map(recordToPlain_), columns: _columnsWithHeaders_(), milestoneSuggestions: MILESTONE_SUGGESTIONS };
   } catch (err) {
     return { error: String((err && err.message) || err) };
   }
@@ -180,7 +196,7 @@ function getParcaDetay(pn) {
     found.riskLevel = computeRiskLevel_(found);
     found.planYear = computePlanYear_(found);
     found.planQuarter = computePlanQuarter_(found);
-    return { ok: true, record: recordToPlain_(found), columns: COLUMN_MAP, milestoneKeys: MILESTONE_KEYS, milestoneSuggestions: MILESTONE_SUGGESTIONS };
+    return { ok: true, record: recordToPlain_(found), columns: _columnsWithHeaders_(), milestoneKeys: MILESTONE_KEYS, milestoneSuggestions: MILESTONE_SUGGESTIONS };
   } catch (err) {
     return { error: String((err && err.message) || err) };
   }

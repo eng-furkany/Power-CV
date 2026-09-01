@@ -48,7 +48,7 @@ var T = {
   navDashboard: 'Dashboard', navListe: 'Parts List',
   theme: 'Theme', darkOn: 'Light', darkOff: 'Dark',
   kpiTotalParts: 'Total Parts', kpiTotalVolume: 'Total Volume', kpiTotalEur: 'Total EUR',
-  kpiLaunched: 'Launched', kpiRisk: 'Risk / Delay', kpiCoverage: 'Avg. Coverage',
+  kpiLaunched: 'Launched', kpiRisk: 'Risk / Delay', kpiCoverage: 'Coverage',
   chartPlantTitle: 'Plant Breakdown', chartVolByTypeTitle: 'Volume by Project Type',
   chartOiByTypeTitle: 'Order Intake by Project Type', chartProductTitle: 'Volume by Product',
   quarterlyOiTitle: 'Order Intake', yearFilterLabel: 'Year', yearAll: 'All',
@@ -226,8 +226,12 @@ function fmtNum(n) { return Number(n || 0).toLocaleString('en-US'); }
 function fmtEur(n) {
   return Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' €';
 }
-function fmtPct(n) {
-  return Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 1 }) + '%';
+// Kullanıcı talebi: bir sayıya birim EKLENECEKSE bu, Sheet başlığından
+// gerçekten okunan birim olmalı (bkz. unitFor) — % gibi bir birim
+// varsayılıp hardcode edilmez.
+function appendUnit(valueStr, unit) {
+  if (!unit) return valueStr;
+  return valueStr + (unit === '%' ? unit : ' ' + unit);
 }
 function fmtDate(iso) {
   if (!iso) return '—';
@@ -501,11 +505,11 @@ function renderDashboard() {
   var k = agg.kpis;
   html += '<div class="kpi-row">' +
     kpiCard(t('kpiTotalParts'), fmtNum(k.totalParts)) +
-    kpiCard(t('kpiTotalVolume'), fmtNum(k.totalVolume)) +
+    kpiCard(t('kpiTotalVolume'), appendUnit(fmtNum(k.totalVolume), unitFor('volume'))) +
     kpiCard(t('kpiTotalEur'), fmtEur(k.totalEur)) +
     kpiCard(t('kpiLaunched'), fmtNum(k.launchedCount)) +
     kpiCard(t('kpiRisk'), fmtNum(k.riskCount), k.riskCount > 0) +
-    kpiCard(t('kpiCoverage'), k.covAvg == null ? '—' : fmtPct(k.covAvg)) +
+    kpiCard(t('kpiCoverage'), k.covAvg == null ? '—' : appendUnit(fmtNum(k.covAvg), unitFor('coveragePlus'))) +
     '</div>';
 
   // Kullanıcı talebi (tekrarlanan): bu grafik tam genişlikte çok yer
@@ -543,8 +547,8 @@ function renderDashboard() {
     chartCardHtml('chart-product', t('chartProductTitle')) +
     '</div>';
 
-  html += pivotTableHtml(t('groupedDATitle'), t('colDiameter'), agg.groupedDA);
-  html += pivotTableHtml(t('groupedTFTitle'), t('colProjectType'), agg.groupedTF);
+  html += pivotTableHtml(t('groupedDATitle'), sheetLabelFor('diameter', 'colDiameter'), agg.groupedDA);
+  html += pivotTableHtml(t('groupedTFTitle'), sheetLabelFor('projectType', 'colProjectType'), agg.groupedTF);
 
   html += '<div class="card"><h2 class="chart-title">' + t('riskTableTitle') + '</h2>';
   if (agg.riskRows.length) {
@@ -557,8 +561,8 @@ function renderDashboard() {
       '<button class="btn btn-outlined" id="dash-risk-search-clear">' + t('clearFilters') + '</button>');
   } else {
     html += '<div class="tbl-wrap"><table class="dt"><thead><tr>' +
-      '<th>' + t('colPn') + '</th><th>' + t('colPlant') + '</th><th>' + t('colProduct') + '</th>' +
-      '<th class="cf-num">' + t('colVolume') + '</th><th>' + t('colStatus') + '</th></tr></thead><tbody>';
+      '<th>' + colLabel('pn') + '</th><th>' + colLabel('plant') + '</th><th>' + colLabel('product') + '</th>' +
+      '<th class="cf-num">' + colLabel('volume') + '</th><th>' + colLabel('status') + '</th></tr></thead><tbody>';
     riskFiltered.forEach(function (r) {
       html += '<tr>' +
         '<td><button class="pn-link" data-open-pn="' + escAttr(r.pn) + '">' + escHtml(r.pn) + '</button></td>' +
@@ -987,9 +991,32 @@ function renderListe() {
   wireListeInteractions(filtered);
 }
 
+// Kullanıcı talebi (2026-09-01): kolon başlıkları, biz hardcode ettiğimiz
+// jenerik metin yerine — varsa — Sheet'in 1. satırındaki GERÇEK başlığı
+// kullanır (getParcaListesi()'nin döndürdüğü columns[].sheetLabel, bkz.
+// Code.gs _columnsWithHeaders_). Böylece kullanıcı Sheet'te "Coverage + (%)"
+// gibi bir birim yazarsa, biz onu uydurmadan/varsaymadan aynen yansıtırız.
+function sheetLabelFor(key, fallbackTKey) {
+  var cols = AppState.liste.columns || [];
+  for (var i = 0; i < cols.length; i++) {
+    if (cols[i].key === key && cols[i].sheetLabel) return cols[i].sheetLabel;
+  }
+  return fallbackTKey ? t(fallbackTKey) : key;
+}
+// Başlıkta parantez içinde bir birim varsa (ör. "Coverage + (%)" -> "%")
+// onu ayıklar — KPI kartları gibi başlığın tamamının sığmadığı yerlerde
+// yalnız birimi eklemek için kullanılır. Yoksa boş string döner (birim
+// uydurulmaz).
+function unitFor(key) {
+  var label = sheetLabelFor(key, null);
+  var m = /\(([^)]+)\)/.exec(label || '');
+  return m ? m[1] : '';
+}
+
 function colLabel(key) {
-  var map = { plant: 'colPlant', pn: 'colPn', product: 'colProduct', volume: 'colVolume', oi: 'colOi', status: 'colStatus', statusPlanned: 'colPlanned', launchSheet: 'colLaunch', projectStatus: 'colProjectStatus' };
-  return t(map[key] || key);
+  var fallbackMap = { plant: 'colPlant', pn: 'colPn', product: 'colProduct', volume: 'colVolume', oi: 'colOi', status: 'colStatus', statusPlanned: 'colPlanned', launchSheet: 'colLaunch', projectStatus: 'colProjectStatus' };
+  if (key === 'status') return t('colStatus'); // risk rozeti — türetilmiş, gerçek bir Sheet kolonu değil
+  return sheetLabelFor(key, fallbackMap[key] || key);
 }
 
 function renderFilterBar() {
@@ -1246,7 +1273,7 @@ function fieldLabelKey(key) {
     msSampleProduction: 'msSampleProduction', msBenchTesting: 'msBenchTesting', msVehicleTest: 'msVehicleTest',
     msCRD: 'msCRD', launchSheet: 'launchSheet'
   };
-  return t(map[key] || key);
+  return sheetLabelFor(key, map[key] || key);
 }
 
 function propRow(key, iconName) {
