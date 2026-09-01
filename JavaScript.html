@@ -48,7 +48,7 @@ var T = {
   navDashboard: 'Dashboard', navListe: 'Parts List',
   theme: 'Theme', darkOn: 'Light', darkOff: 'Dark',
   kpiTotalParts: 'Total Parts', kpiTotalVolume: 'Total Volume', kpiTotalEur: 'Total EUR',
-  kpiLaunched: 'Launched', kpiRisk: 'Risk / Delay',
+  kpiLaunched: 'Launched', kpiRisk: 'Risk / Delay', kpiCoverage: 'Avg. Coverage',
   chartPlantTitle: 'Plant Breakdown', chartVolByTypeTitle: 'Volume by Project Type',
   chartOiByTypeTitle: 'Order Intake by Project Type', chartProductTitle: 'Volume by Product',
   quarterlyOiTitle: 'Order Intake', yearFilterLabel: 'Year', yearAll: 'All',
@@ -226,6 +226,9 @@ function fmtNum(n) { return Number(n || 0).toLocaleString('en-US'); }
 function fmtEur(n) {
   return Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' €';
 }
+function fmtPct(n) {
+  return Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 1 }) + '%';
+}
 function fmtDate(iso) {
   if (!iso) return '—';
   var d = new Date(iso);
@@ -340,7 +343,7 @@ function buildPivot(cellSums, rowTotals, colTotals) {
 function computeDashboardAggregates(rows) {
   var totalVolume = 0, totalEur = 0, launchedCount = 0, riskCount = 0;
   var plantCounts = {}, volByType = {}, oiByType = {}, productVolume = {};
-  var covSumByType = {}, covCountByType = {}; // Coverage + ortalaması (Project Type bazında)
+  var covSum = 0, covCount = 0; // Coverage + ortalaması (KPI kartı için)
   var daCells = {}, daRowTotals = {}, daColTotals = {}; // Diameter (satır) × Plant (kolon)
   var tfCells = {}, tfRowTotals = {}, tfColTotals = {}; // Project Type (satır) × Product (kolon)
   var riskRows = [];
@@ -358,8 +361,8 @@ function computeDashboardAggregates(rows) {
     volByType[typeKey] = (volByType[typeKey] || 0) + (Number(r.volume) || 0);
     oiByType[typeKey] = (oiByType[typeKey] || 0) + (Number(r.oi) || 0);
     if (r.coveragePlus !== '' && r.coveragePlus != null) {
-      covSumByType[typeKey] = (covSumByType[typeKey] || 0) + Number(r.coveragePlus);
-      covCountByType[typeKey] = (covCountByType[typeKey] || 0) + 1;
+      covSum += Number(r.coveragePlus);
+      covCount++;
     }
     var prodKey = String(r.product || '—');
     productVolume[prodKey] = (productVolume[prodKey] || 0) + (Number(r.volume) || 0);
@@ -385,18 +388,16 @@ function computeDashboardAggregates(rows) {
 
   riskRows.sort(function (a, b) { return (a.riskLevel === 'risk' ? 0 : 1) - (b.riskLevel === 'risk' ? 0 : 1); });
 
-  // Coverage + ortalaması Project Type bazında — "Order Intake by Project
-  // Type" grafiğinde küçük bir işaretçi (marker) olarak gösterilecek
-  // (kullanıcı talebi: OI ekseni kısaltılınca açılan boşlukta).
-  var covAvgByType = {};
-  Object.keys(covSumByType).forEach(function (k) { covAvgByType[k] = covSumByType[k] / covCountByType[k]; });
+  // Coverage + ortalaması — kullanıcı talebi: grafiğin İÇİNDE değil, KPI
+  // şeridinde yüzde olarak gösterilsin (önceki turda grafiğe eklenen küçük
+  // işaretçi kaldırıldı, bkz. drawOiByTypeChart).
+  var covAvg = covCount ? (covSum / covCount) : null;
 
   return {
-    kpis: { totalParts: rows.length, totalVolume: totalVolume, totalEur: totalEur, launchedCount: launchedCount, riskCount: riskCount },
+    kpis: { totalParts: rows.length, totalVolume: totalVolume, totalEur: totalEur, launchedCount: launchedCount, riskCount: riskCount, covAvg: covAvg },
     plantCounts: bucketTop(plantCounts, 8),
     volByType: volByType,
     oiByType: oiByType,
-    covAvgByType: covAvgByType,
     productVolume: productVolume,
     groupedDA: buildPivot(daCells, daRowTotals, daColTotals),
     groupedTF: buildPivot(tfCells, tfRowTotals, tfColTotals),
@@ -504,23 +505,30 @@ function renderDashboard() {
     kpiCard(t('kpiTotalEur'), fmtEur(k.totalEur)) +
     kpiCard(t('kpiLaunched'), fmtNum(k.launchedCount)) +
     kpiCard(t('kpiRisk'), fmtNum(k.riskCount), k.riskCount > 0) +
+    kpiCard(t('kpiCoverage'), k.covAvg == null ? '—' : fmtPct(k.covAvg)) +
     '</div>';
 
+  // Kullanıcı talebi (tekrarlanan): bu grafik tam genişlikte çok yer
+  // kaplıyordu — artık diğer dört grafikle birlikte chart-grid içinde,
+  // aynı kare hücre boyutunda. Varsayılan kompakt (90px, eksensiz mini
+  // görünüm); sağ üstteki düğmeyle isteyen büyütüp tam detaya (eksenler +
+  // legend + Plan/Actual/Δ başlığı) geçebiliyor — büyüdüğünde de hücre
+  // genişliği sabit kaldığı için kare oranını korur, sayfa genişliğine
+  // taşmaz.
+  var oiCardHtml = '';
   if (qYear !== 'all') {
-    // Kullanıcı talebi (tekrarlanan): bu grafik hâlâ çok yer kaplıyordu —
-    // varsayılan artık çok kompakt (90px, eksensiz/legendsız mini görünüm),
-    // sağ üstteki düğmeyle isteyen büyütüp tam detaya (eksenler + legend)
-    // geçebiliyor (chart-hd + chart-toggle-btn).
     var oiExpanded = !!AppState.dashboard.oiExpanded;
-    var planTotal = qData.plannedCumulative[3];
-    var actualTotal = qData.actualCumulative[3];
-    var diff = actualTotal - planTotal;
-    var diffStr = (diff > 0 ? '+' : '') + fmtEur(diff);
-    html += '<div class="card" style="margin-bottom:var(--space-lg);">' +
+    var oiTitle = qYear + ' ' + t('quarterlyOiTitle');
+    if (oiExpanded) {
+      var planTotal = qData.plannedCumulative[3];
+      var actualTotal = qData.actualCumulative[3];
+      var diff = actualTotal - planTotal;
+      var diffStr = (diff > 0 ? '+' : '') + fmtEur(diff);
+      oiTitle += ' — ' + t('oiPlannedLabel') + ' ' + fmtEur(planTotal) + ' · ' + t('oiActualLabel') + ' ' + fmtEur(actualTotal) + ' · ' + t('oiDiffLabel') + ' ' + diffStr;
+    }
+    oiCardHtml = '<div class="card">' +
       '<div class="chart-hd">' +
-      '<h2 class="chart-title" style="margin-bottom:0;">' + qYear + ' ' + t('quarterlyOiTitle') +
-      ' — ' + t('oiPlannedLabel') + ' ' + fmtEur(planTotal) + ' · ' + t('oiActualLabel') + ' ' + fmtEur(actualTotal) +
-      ' · ' + t('oiDiffLabel') + ' ' + diffStr + '</h2>' +
+      '<h2 class="chart-title" style="margin-bottom:0;">' + oiTitle + '</h2>' +
       '<button class="chart-toggle-btn" id="oi-toggle" aria-label="' + escAttr(oiExpanded ? t('collapseChart') : t('expandChart')) + '" title="' + escAttr(oiExpanded ? t('collapseChart') : t('expandChart')) + '">' +
       icon(oiExpanded ? 'chevronUp' : 'chevronDown', 16) + '</button>' +
       '</div>' +
@@ -528,6 +536,7 @@ function renderDashboard() {
   }
 
   html += '<div class="chart-grid">' +
+    oiCardHtml +
     chartCardHtml('chart-plant', t('chartPlantTitle')) +
     chartCardHtml('chart-volbytype', t('chartVolByTypeTitle')) +
     chartCardHtml('chart-oibytype', t('chartOiByTypeTitle')) +
@@ -566,7 +575,7 @@ function renderDashboard() {
   wireDashboardInteractions(riskFiltered);
   drawPieChart('chart-plant', 'plant', agg.plantCounts);
   drawVolByTypeChart(agg.volByType);
-  drawOiByTypeChart(agg.oiByType, agg.covAvgByType);
+  drawOiByTypeChart(agg.oiByType);
   drawProductChart(agg.productVolume);
   if (qYear !== 'all') drawQuarterlyChart(qData, !oiExpanded);
 }
@@ -753,9 +762,9 @@ function drawVolByTypeChart(volByType) { drawBarChart('chart-volbytype', 'volbyt
 // logaritmik x ekseni (en büyük değeri "kısaltır", küçük değerleri de
 // görünür kılar) + her çubuğun ucunda gerçek değeri yazan bir etiket
 // (ölçek sıkıştırılsa da veri normalde okunabilir kalsın — kullanıcı
-// talebi). Boşalan alanda Coverage + ortalaması, gizli ikinci bir x
-// ekseninde (x1) küçük bir işaretçiyle (♦) ayrıca gösteriliyor.
-function drawOiByTypeChart(oiByType, covAvgByType) {
+// talebi). Coverage + burada değil, KPI şeridinde ayrı bir kart olarak
+// gösteriliyor (kullanıcı talebi: "grafiğin içerisinde gösterme").
+function drawOiByTypeChart(oiByType) {
   var canvas = document.getElementById('chart-oibytype');
   if (!canvas) return;
   var wrap = canvas.closest('.chart-canvas-wrap');
@@ -769,59 +778,31 @@ function drawOiByTypeChart(oiByType, covAvgByType) {
   // yalnız ÇİZİM için küçük bir taban değere yuvarlanır, etikette (aşağıda
   // `values[ctx.dataIndex]` ile) gerçek değer (0) yazılmaya devam eder.
   var plotValues = values.map(function (v) { return v > 0 ? v : 0.01; });
-  var covValues = labels.map(function (l) { return (covAvgByType && covAvgByType[l] != null) ? covAvgByType[l] : null; });
-  var hasCov = covValues.some(function (v) { return v != null; });
 
   if (AppState.charts.oibytype) AppState.charts.oibytype.destroy();
-  var barColor = chartPalette()[1];
-  var covColor = chartPalette()[2];
-
-  var datasets = [{
-    type: 'bar', data: plotValues, backgroundColor: barColor, xAxisID: 'x',
-    datalabels: {
-      color: cssVar('--muted'), anchor: 'end', align: 'right', font: { size: 9 },
-      formatter: function (v, ctx) { return fmtNum(values[ctx.dataIndex]); }
-    }
-  }];
-  if (hasCov) {
-    datasets.push({
-      type: 'line', label: t('fieldCoveragePlus'), data: covValues, xAxisID: 'x1',
-      showLine: false, pointStyle: 'rectRot', pointRadius: 5, pointHoverRadius: 7,
-      backgroundColor: covColor, borderColor: covColor,
-      datalabels: { display: false }
-    });
-  }
-
   AppState.charts.oibytype = new Chart(canvas.getContext('2d'), {
     type: 'bar',
     plugins: (window.ChartDataLabels ? [window.ChartDataLabels] : []),
-    data: { labels: labels, datasets: datasets },
+    data: { labels: labels, datasets: [{
+      data: plotValues, backgroundColor: chartPalette()[1],
+      datalabels: {
+        color: cssVar('--muted'), anchor: 'end', align: 'right', font: { size: 9 },
+        formatter: function (v, ctx) { return fmtNum(values[ctx.dataIndex]); }
+      }
+    }] },
     options: {
       indexAxis: 'y', responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: {
-          display: hasCov, position: 'top',
-          labels: { color: cssVar('--text'), boxWidth: 8, font: { size: 9 }, filter: function (item) { return item.datasetIndex === 1; } }
-        },
-        tooltip: {
-          callbacks: {
-            label: function (ctx) {
-              return ctx.datasetIndex === 1
-                ? (t('fieldCoveragePlus') + ': ' + fmtNum(ctx.parsed.x))
-                : fmtNum(values[ctx.dataIndex]);
-            }
-          }
-        }
+        legend: { display: false },
+        tooltip: { callbacks: { label: function (ctx) { return fmtNum(values[ctx.dataIndex]); } } }
       },
       scales: {
-        x: { type: 'logarithmic', position: 'bottom', ticks: { color: cssVar('--muted'), font: { size: 9 }, callback: function (v) { return fmtNum(v); } }, grid: { color: 'rgba(148,163,184,0.15)' } },
-        x1: { type: 'linear', display: false, position: 'top', min: 0 },
+        x: { type: 'logarithmic', ticks: { color: cssVar('--muted'), font: { size: 9 }, callback: function (v) { return fmtNum(v); } }, grid: { color: 'rgba(148,163,184,0.15)' } },
         y: { ticks: { color: cssVar('--muted'), font: { size: 9 } }, grid: { display: false } }
       },
       onClick: function (evt, els) {
-        var barEl = els.filter(function (e) { return e.datasetIndex === 0; })[0];
-        if (!barEl) return;
-        applyChartClickFilter(labels[barEl.index]);
+        if (!els.length) return;
+        applyChartClickFilter(labels[els[0].index]);
       }
     }
   });
@@ -897,7 +878,7 @@ function refreshChartsForTheme() {
   if (!agg) return;
   if (AppState.charts.plant) drawPieChart('chart-plant', 'plant', agg.plantCounts);
   if (AppState.charts.volbytype) drawVolByTypeChart(agg.volByType);
-  if (AppState.charts.oibytype) drawOiByTypeChart(agg.oiByType, agg.covAvgByType);
+  if (AppState.charts.oibytype) drawOiByTypeChart(agg.oiByType);
   if (AppState.charts.product) drawProductChart(agg.productVolume);
   if (AppState.charts.quarterly) drawQuarterlyChart(AppState.dashboard.qData, !AppState.dashboard.oiExpanded);
 }
