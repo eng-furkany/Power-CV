@@ -41,6 +41,12 @@ var COLUMN_MAP = [
   // çizgi grafiğinde Plan/Actual olarak karşılaştırılır (bkz. JavaScript.html
   // computeQuarterlyOI/drawQuarterlyChart).
   { key: 'oiActual',              col: 24, label: 'OI Actual',            editable: true,  type: 'number' },
+  // Y kolonu (kullanıcı talebi): projenin genel status'u — Status
+  // Planned/Actual'dan (çeyrek/milestone bazlı) farklı, sabit bir liste
+  // (ör. Active/On Hold/Cancelled/Completed). Parça Listesi'nde ayrı bir
+  // kolon + filtre olarak gösterilir (bkz. JavaScript.html VISIBLE_COLS/
+  // FILTERABLE).
+  { key: 'projectStatus',         col: 25, label: 'Project Status',      editable: true,  type: 'combo' },
   { key: 'eur',                   col: 28, label: 'EUR',                  editable: true,  type: 'number' }
 ];
 

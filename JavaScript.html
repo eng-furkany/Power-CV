@@ -70,7 +70,8 @@ var T = {
   clearFilters: 'Clear filters', activeFilters: 'Active filters',
   listEmptyTitle: 'No records', listEmptySub: 'No part matches the current filters.',
   colPlant: 'Plant', colPn: 'P/N', colProduct: 'Product', colVolume: 'Volume', colOi: 'OI',
-  colStatus: 'Status', colLaunch: 'Launch',
+  colStatus: 'Status', colLaunch: 'Launch', colProjectStatus: 'Project Status',
+  filterProjectStatus: 'Project Status', fieldProjectStatus: 'Project Status',
   statusLaunched: 'Launched', statusPlanned: 'Planned', statusDelay: 'Delay', statusRisk: 'Risk/Delay',
   drawerTitle: 'Part Detail', drawerOpenedElsewhere: 'Opened from a different list',
   drawerSecIdentity: 'Identity', drawerSecCommercial: 'Commercial', drawerSecMilestones: 'Milestones',
@@ -815,8 +816,10 @@ function refreshChartsForTheme() {
 // atlandı — mvp-akisi.md'nin orantılı mühendislik ilkesi.
 // --------------------------------------------------------------------------
 
-var VISIBLE_COLS = ['plant', 'pn', 'product', 'volume', 'oi', 'status', 'statusPlanned'];
-var FILTERABLE = ['plant', 'product', 'statusCategory'];
+var VISIBLE_COLS = ['plant', 'pn', 'product', 'volume', 'oi', 'status', 'statusPlanned', 'projectStatus'];
+var FILTERABLE = ['plant', 'product', 'statusCategory', 'projectStatus'];
+// Filtre başlıkları için anahtar -> çeviri-anahtarı eşlemesi (renderFilterBar).
+var FILTER_LABEL_KEYS = { plant: 'filterPlant', product: 'filterProduct', statusCategory: 'filterStatus', projectStatus: 'filterProjectStatus' };
 
 function loadListe(force) {
   var root = document.getElementById('liste-body');
@@ -912,14 +915,14 @@ function renderListe() {
 }
 
 function colLabel(key) {
-  var map = { plant: 'colPlant', pn: 'colPn', product: 'colProduct', volume: 'colVolume', oi: 'colOi', status: 'colStatus', statusPlanned: 'colPlanned', launchSheet: 'colLaunch' };
+  var map = { plant: 'colPlant', pn: 'colPn', product: 'colProduct', volume: 'colVolume', oi: 'colOi', status: 'colStatus', statusPlanned: 'colPlanned', launchSheet: 'colLaunch', projectStatus: 'colProjectStatus' };
   return t(map[key] || key);
 }
 
 function renderFilterBar() {
   var html = '<div class="filter-bar">';
   FILTERABLE.forEach(function (key) {
-    var labelKey = key === 'plant' ? 'filterPlant' : (key === 'product' ? 'filterProduct' : 'filterStatus');
+    var labelKey = FILTER_LABEL_KEYS[key] || 'filterStatus';
     var active = AppState.liste.filters[key] && AppState.liste.filters[key].length;
     html += '<div class="filter-group"><span class="filter-label">' + t(labelKey) + '</span>' +
       '<div class="fdr-wrap"><button class="fdr-btn' + (active ? ' fdr-active' : '') + '" data-fdr="' + key + '">' +
@@ -1146,7 +1149,7 @@ function renderDrawer() {
   html += '<div class="drawer-sec">' + t('drawerSecCommercial') + '</div>';
   html += propRow('pnCompetitor', 'edit') + propRow('attrPPCA', 'edit') + propRow('attrDisc', 'edit') + propRow('attrRB', 'edit') +
     propRow('volume', 'edit') + propRow('oi', 'edit') + propRow('oiActual', 'edit') + propRow('coveragePlus', 'edit') + propRow('eur', 'edit') +
-    propRow('statusPlanned', 'edit') + propRow('statusActual', 'checkCircle');
+    propRow('projectStatus', 'edit') + propRow('statusPlanned', 'edit') + propRow('statusActual', 'checkCircle');
 
   html += '<div class="drawer-sec">' + t('drawerSecMilestones') + '</div>';
   html += '<div class="milestone-list">';
@@ -1163,6 +1166,7 @@ function fieldLabelKey(key) {
     pnCompetitor: 'fieldPnCompetitor', product: 'fieldProduct',
     attrPPCA: 'fieldAttrPPCA', attrDisc: 'fieldAttrDisc', attrRB: 'fieldAttrRB',
     volume: 'fieldVolume', oi: 'fieldOi', oiActual: 'fieldOiActual', coveragePlus: 'fieldCoveragePlus', eur: 'fieldEur',
+    projectStatus: 'fieldProjectStatus',
     statusPlanned: 'fieldStatusPlanned', statusActual: 'fieldStatusActual',
     msSamplePurchase: 'msSamplePurchase', msCompetitorAnalysis: 'msCompetitorAnalysis',
     msProductDefinition: 'msProductDefinition', msCommercialAgreement: 'msCommercialAgreement',
