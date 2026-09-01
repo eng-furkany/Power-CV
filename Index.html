@@ -1,13 +1,14 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
   <base target="_top">
   <meta charset="utf-8">
   <?!= include('Stylesheet'); ?>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 </head>
 <body>
-  <a class="skip-link" href="#main-content">İçeriğe atla / Skip to content</a>
+  <a class="skip-link" href="#main-content">Skip to content</a>
 
   <header id="app-header">
     <img class="hdr-logo" alt="Valeo"
@@ -19,18 +20,9 @@
       <path d="M18,70 Q100,82 182,70" stroke="#76ff03" stroke-width="5" fill="none" stroke-linecap="round"/>
     </svg>
     <span class="hdr-title" id="app-title">Power CV Launch Plan</span>
-    <span class="hdr-title" id="hdr-page-title" style="opacity:.7;font-weight:400;">&nbsp;</span>
     <span class="hdr-spacer"></span>
-    <button class="hdr-btn" id="lang-btn" aria-label="Language"></button>
     <button class="hdr-btn" id="dark-mode-btn" aria-label="Theme"></button>
   </header>
-
-  <nav id="sidebar" aria-label="Ana gezinme">
-    <button class="sidebar-item active" data-nav="dashboard">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
-      <span data-i18n="navDashboard">Dashboard</span>
-    </button>
-  </nav>
 
   <main id="main-content">
     <section id="view-dashboard" class="page-view">
@@ -43,19 +35,13 @@
 
       <div class="page-header" style="margin-top:var(--space-xl);">
         <div>
-          <h2 class="page-title" data-i18n="navListe">Parça Listesi</h2>
+          <h2 class="page-title" data-i18n="navListe">Parts List</h2>
         </div>
+        <button class="btn btn-outlined" id="liste-toggle-btn"></button>
       </div>
-      <div id="liste-body"></div>
+      <div id="liste-body" class="hidden"></div>
     </section>
   </main>
-
-  <nav id="bottom-nav" aria-label="Mobil gezinme">
-    <button class="bn-item active" data-nav="dashboard">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
-      <span data-i18n="navDashboard">Dashboard</span>
-    </button>
-  </nav>
 
   <div class="drawer-scrim" id="drawer-scrim"></div>
   <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-hd-title">

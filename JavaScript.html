@@ -37,120 +37,73 @@ function icon(name, size) {
 }
 
 // --------------------------------------------------------------------------
-// TR/EN sözlük — dil-yerellestirme.md "Gerçek Bir Örnek" deseni,
-// bilinen 3 eksik kapatılmış: <html lang> güncellenir, sabit durum
-// kategorileri de kapsamda (STATUS_LEX), sayı/tarih biçimi dile göre değişir.
+// Metin sözlüğü — İngilizce tek dil (kullanıcı talebi, 2026-09-01: "Her
+// şeyi İngilizce yapabilirsin. Türkçe kullanıma gerek yok."). Önceki
+// TR/EN çift-dil sözlüğü (dil-yerellestirme.md deseni) kaldırıldı; T/t()
+// dolaylaması yine de tutuldu — tek noktadan metin değişikliği için.
 // --------------------------------------------------------------------------
 
 var T = {
-  tr: {
-    appTitle: 'Power CV Launch Plan',
-    navDashboard: 'Dashboard', navListe: 'Parça Listesi',
-    theme: 'Tema', darkOn: 'Açık', darkOff: 'Koyu',
-    kpiTotalParts: 'Toplam Parça', kpiTotalVolume: 'Toplam Hacim', kpiTotalEur: 'Toplam EUR',
-    kpiLaunched: 'Launched', kpiRisk: 'Risk / Gecikme',
-    chartPlantTitle: 'Plant Dağılımı', chartVolByTypeTitle: 'Project Type Bazlı Hacim',
-    chartOiByTypeTitle: 'Project Type Bazlı Order Intake', chartProductTitle: 'Ürün Bazlı Hacim',
-    quarterlyOiTitle: 'Order Intake', yearFilterLabel: 'Yıl', yearAll: 'Tümü',
-    groupedDATitle: 'Diameter × Plant — Toplam OI', groupedTFTitle: 'Project Type × Product — Toplam OI',
-    colDiameter: 'Diameter', colProjectType: 'Project Type', colOiSum: 'Toplam OI', colTotal: 'Toplam',
-    otherBucket: 'Diğer', filterAppliedToast: 'Filtre uygulandı',
-    expandChart: 'Grafiği büyüt', collapseChart: 'Grafiği küçült',
-    globalSearchLabel: 'Genel Arama',
-    globalSearchPlaceholder: 'P/N, Plant, Product, Project Type, Status Planned/Actual ara — virgülle birden çok değer yazabilirsiniz',
-    colPlanned: 'Planned',
-    riskLocalSearchPlaceholder: 'Bu tabloda ara…',
-    riskTableTitle: 'Risk / Gecikme Tablosu',
-    riskTableEmptyTitle: 'Risk yok', riskTableEmptySub: 'Şu an risk/gecikme rozetli bir kayıt bulunmuyor.',
-    retry: 'Tekrar dene', loadError: 'Bu veriler şu an alınamıyor.',
-    filterPlant: 'Plant', filterProduct: 'Product', filterStatus: 'Durum', filterAll: 'Tümü',
-    searchPlaceholder: 'P/N, Plant, Product ara — virgülle birden çok değer yazabilirsiniz',
-    clearFilters: 'Filtreyi temizle', activeFilters: 'Aktif filtreler',
-    listEmptyTitle: 'Kayıt bulunamadı', listEmptySub: 'Süzgece uyan bir parça yok.',
-    colPlant: 'Plant', colPn: 'P/N', colProduct: 'Product', colVolume: 'Volume', colOi: 'OI',
-    colStatus: 'Durum', colLaunch: 'Launch',
-    statusLaunched: 'Launched', statusPlanned: 'Planlı', statusDelay: 'Gecikme', statusRisk: 'Risk/Delay',
-    drawerTitle: 'Parça Detayı', drawerOpenedElsewhere: 'Farklı bir listeden açıldı',
-    drawerSecIdentity: 'Kimlik', drawerSecCommercial: 'Ticari', drawerSecMilestones: 'Kilometre Taşları',
-    fieldPlant: 'Plant', fieldProjectType: 'Project Type', fieldDiameter: 'Diameter', fieldPn: 'P/N',
-    fieldPnCompetitor: 'P/N Competitor', fieldProduct: 'Product',
-    fieldAttrPPCA: 'Attribute (PPCA)', fieldAttrDisc: 'Attribute (Disc)', fieldAttrRB: 'Attribute (RB)',
-    fieldVolume: 'Volume', fieldOi: 'OI', fieldCoveragePlus: 'Coverage +',
-    fieldEur: 'EUR (€)', fieldStatusPlanned: 'Status Planned', fieldStatusActual: 'Status Actual',
-    msSamplePurchase: 'Sample Purchase', msCompetitorAnalysis: 'Competitor Analysis',
-    msProductDefinition: 'Product Definition', msCommercialAgreement: 'Commercial Agreement',
-    msSampleProduction: 'Sample Production', msBenchTesting: 'Bench testing', msVehicleTest: 'Vehicle Test',
-    msCRD: 'CRD', launchSheet: 'Launch Sheet (tarih)',
-    riskBannerRisk: 'Bu parça risk/gecikme altında.', riskBannerDelay: 'Bu kilometre taşı hedeflenen çeyreği geçti.',
-    saving: 'Kaydediliyor…', saved: 'Kaydedildi', saveError: 'Kaydedilemedi — tekrar deneyin',
-    undo: 'Geri al', undoDone: 'Geri alındı', undoFailed: 'Geri alınamadı',
-    prefSaveError: 'Tercih kaydedilemedi — bu oturumda geçerli, kalıcı değil.',
-    loading: 'Yükleniyor…', close: 'Kapat', prev: 'Önceki kayıt', next: 'Sonraki kayıt',
-    updatedAt: 'Güncelleme',
-    langBtn: 'EN'
-  },
-  en: {
-    appTitle: 'Power CV Launch Plan',
-    navDashboard: 'Dashboard', navListe: 'Parts List',
-    theme: 'Theme', darkOn: 'Light', darkOff: 'Dark',
-    kpiTotalParts: 'Total Parts', kpiTotalVolume: 'Total Volume', kpiTotalEur: 'Total EUR',
-    kpiLaunched: 'Launched', kpiRisk: 'Risk / Delay',
-    chartPlantTitle: 'Plant Breakdown', chartVolByTypeTitle: 'Volume by Project Type',
-    chartOiByTypeTitle: 'Order Intake by Project Type', chartProductTitle: 'Volume by Product',
-    quarterlyOiTitle: 'Order Intake', yearFilterLabel: 'Year', yearAll: 'All',
-    groupedDATitle: 'Diameter × Plant — Total OI', groupedTFTitle: 'Project Type × Product — Total OI',
-    colDiameter: 'Diameter', colProjectType: 'Project Type', colOiSum: 'Total OI', colTotal: 'Total',
-    otherBucket: 'Other', filterAppliedToast: 'Filter applied',
-    expandChart: 'Expand chart', collapseChart: 'Collapse chart',
-    globalSearchLabel: 'Global Search',
-    globalSearchPlaceholder: 'Search P/N, Plant, Product, Project Type, Status Planned/Actual — comma-separate for multiple values',
-    colPlanned: 'Planned',
-    riskLocalSearchPlaceholder: 'Search this table…',
-    riskTableTitle: 'Risk / Delay Table',
-    riskTableEmptyTitle: 'No risk', riskTableEmptySub: 'No part currently carries a risk/delay flag.',
-    retry: 'Retry', loadError: 'These figures cannot be loaded right now.',
-    filterPlant: 'Plant', filterProduct: 'Product', filterStatus: 'Status', filterAll: 'All',
-    searchPlaceholder: 'Search P/N, Plant, Product — comma-separate for multiple values',
-    clearFilters: 'Clear filters', activeFilters: 'Active filters',
-    listEmptyTitle: 'No records', listEmptySub: 'No part matches the current filters.',
-    colPlant: 'Plant', colPn: 'P/N', colProduct: 'Product', colVolume: 'Volume', colOi: 'OI',
-    colStatus: 'Status', colLaunch: 'Launch',
-    statusLaunched: 'Launched', statusPlanned: 'Planned', statusDelay: 'Delay', statusRisk: 'Risk/Delay',
-    drawerTitle: 'Part Detail', drawerOpenedElsewhere: 'Opened from a different list',
-    drawerSecIdentity: 'Identity', drawerSecCommercial: 'Commercial', drawerSecMilestones: 'Milestones',
-    fieldPlant: 'Plant', fieldProjectType: 'Project Type', fieldDiameter: 'Diameter', fieldPn: 'P/N',
-    fieldPnCompetitor: 'P/N Competitor', fieldProduct: 'Product',
-    fieldAttrPPCA: 'Attribute (PPCA)', fieldAttrDisc: 'Attribute (Disc)', fieldAttrRB: 'Attribute (RB)',
-    fieldVolume: 'Volume', fieldOi: 'OI', fieldCoveragePlus: 'Coverage +',
-    fieldEur: 'EUR (€)', fieldStatusPlanned: 'Status Planned', fieldStatusActual: 'Status Actual',
-    msSamplePurchase: 'Sample Purchase', msCompetitorAnalysis: 'Competitor Analysis',
-    msProductDefinition: 'Product Definition', msCommercialAgreement: 'Commercial Agreement',
-    msSampleProduction: 'Sample Production', msBenchTesting: 'Bench testing', msVehicleTest: 'Vehicle Test',
-    msCRD: 'CRD', launchSheet: 'Launch Sheet (date)',
-    riskBannerRisk: 'This part is flagged risk/delay.', riskBannerDelay: 'This milestone is past its target quarter.',
-    saving: 'Saving…', saved: 'Saved', saveError: 'Not saved — try again',
-    undo: 'Undo', undoDone: 'Undone', undoFailed: 'Could not undo',
-    prefSaveError: 'Preference not saved — session only, not persisted.',
-    loading: 'Loading…', close: 'Close', prev: 'Previous record', next: 'Next record',
-    updatedAt: 'Updated',
-    langBtn: 'TR'
-  }
+  appTitle: 'Power CV Launch Plan',
+  navDashboard: 'Dashboard', navListe: 'Parts List',
+  theme: 'Theme', darkOn: 'Light', darkOff: 'Dark',
+  kpiTotalParts: 'Total Parts', kpiTotalVolume: 'Total Volume', kpiTotalEur: 'Total EUR',
+  kpiLaunched: 'Launched', kpiRisk: 'Risk / Delay',
+  chartPlantTitle: 'Plant Breakdown', chartVolByTypeTitle: 'Volume by Project Type',
+  chartOiByTypeTitle: 'Order Intake by Project Type', chartProductTitle: 'Volume by Product',
+  quarterlyOiTitle: 'Order Intake', yearFilterLabel: 'Year', yearAll: 'All',
+  oiPlannedLabel: 'Plan', oiActualLabel: 'Actual', oiDiffLabel: 'Δ',
+  groupedDATitle: 'Diameter × Plant — Total OI', groupedTFTitle: 'Project Type × Product — Total OI',
+  colDiameter: 'Diameter', colProjectType: 'Project Type', colOiSum: 'Total OI', colTotal: 'Total',
+  otherBucket: 'Other', filterAppliedToast: 'Filter applied',
+  expandChart: 'Expand chart', collapseChart: 'Collapse chart',
+  showList: 'Show Parts List', hideList: 'Hide Parts List',
+  globalSearchLabel: 'Global Search',
+  globalSearchPlaceholder: 'Search P/N, Plant, Product, Project Type, Status Planned/Actual — comma-separate for multiple values',
+  colPlanned: 'Planned',
+  riskLocalSearchPlaceholder: 'Search this table…',
+  riskTableTitle: 'Risk / Delay Table',
+  riskTableEmptyTitle: 'No risk', riskTableEmptySub: 'No part currently carries a risk/delay flag.',
+  retry: 'Retry', loadError: 'These figures cannot be loaded right now.',
+  filterPlant: 'Plant', filterProduct: 'Product', filterStatus: 'Status', filterAll: 'All',
+  searchPlaceholder: 'Search P/N, Plant, Product — comma-separate for multiple values',
+  clearFilters: 'Clear filters', activeFilters: 'Active filters',
+  listEmptyTitle: 'No records', listEmptySub: 'No part matches the current filters.',
+  colPlant: 'Plant', colPn: 'P/N', colProduct: 'Product', colVolume: 'Volume', colOi: 'OI',
+  colStatus: 'Status', colLaunch: 'Launch',
+  statusLaunched: 'Launched', statusPlanned: 'Planned', statusDelay: 'Delay', statusRisk: 'Risk/Delay',
+  drawerTitle: 'Part Detail', drawerOpenedElsewhere: 'Opened from a different list',
+  drawerSecIdentity: 'Identity', drawerSecCommercial: 'Commercial', drawerSecMilestones: 'Milestones',
+  fieldPlant: 'Plant', fieldProjectType: 'Project Type', fieldDiameter: 'Diameter', fieldPn: 'P/N',
+  fieldPnCompetitor: 'P/N Competitor', fieldProduct: 'Product',
+  fieldAttrPPCA: 'Attribute (PPCA)', fieldAttrDisc: 'Attribute (Disc)', fieldAttrRB: 'Attribute (RB)',
+  fieldVolume: 'Volume', fieldOi: 'OI', fieldOiActual: 'OI Actual', fieldCoveragePlus: 'Coverage +',
+  fieldEur: 'EUR (€)', fieldStatusPlanned: 'Status Planned', fieldStatusActual: 'Status Actual',
+  msSamplePurchase: 'Sample Purchase', msCompetitorAnalysis: 'Competitor Analysis',
+  msProductDefinition: 'Product Definition', msCommercialAgreement: 'Commercial Agreement',
+  msSampleProduction: 'Sample Production', msBenchTesting: 'Bench testing', msVehicleTest: 'Vehicle Test',
+  msCRD: 'CRD', launchSheet: 'Launch Sheet (date)',
+  riskBannerRisk: 'This part is flagged risk/delay.', riskBannerDelay: 'This milestone is past its target quarter.',
+  saving: 'Saving…', saved: 'Saved', saveError: 'Not saved — try again',
+  undo: 'Undo', undoDone: 'Undone', undoFailed: 'Could not undo',
+  prefSaveError: 'Preference not saved — session only, not persisted.',
+  loading: 'Loading…', close: 'Close', prev: 'Previous record', next: 'Next record',
+  updatedAt: 'Updated'
 };
 
-function t(key) { return (T[AppState.lang] && T[AppState.lang][key]) || key; }
+function t(key) { return T[key] || key; }
 
-// Ham durum değerine dokunmadan yalnız GÖSTERİLEN metni çevirir (StatusLex deseni).
+// Ham durum değerine dokunmadan yalnız GÖSTERİLEN metni çevirir (StatusLex
+// deseni) — tek dile geçtikten sonra da korunuyor, çünkü Sheet'teki ham
+// değer ile ekranda gösterilecek metin ayrı tutulmalı (ör. ileride kısaltma/
+// yeniden adlandırma gerekirse tek noktadan yapılabilsin).
 var STATUS_LEX = {
-  'Done':          { tr: 'Tamam', en: 'Done' },
-  'Not Required':  { tr: 'Gerekmiyor', en: 'Not Required' },
-  'TBD':           { tr: 'TBD', en: 'TBD' },
-  'In Progress':   { tr: 'Devam Ediyor', en: 'In Progress' },
-  'Launched':      { tr: 'Launched', en: 'Launched' }
+  'Done': 'Done', 'Not Required': 'Not Required', 'TBD': 'TBD',
+  'In Progress': 'In Progress', 'Launched': 'Launched'
 };
 function lexLabel(raw) {
   var s = String(raw == null ? '' : raw).trim();
-  if (STATUS_LEX[s]) return STATUS_LEX[s][AppState.lang] || s;
-  return s; // çeyrek string'i ("Q1/2027") gibi dile bağlı olmayan değerler aynen kalır
+  return STATUS_LEX[s] || s; // çeyrek string'i ("Q1/2027") gibi bilinmeyen değerler aynen kalır
 }
 
 // --------------------------------------------------------------------------
@@ -159,8 +112,7 @@ function lexLabel(raw) {
 
 var AppState = {
   darkMode: false,
-  lang: 'tr',
-  currentPage: 'dashboard',
+  listeVisible: false,
   dashboard: { searchInput: '', riskSearch: '', agg: null, year: null, qData: null, qYear: null, oiExpanded: false },
   liste: { rows: null, columns: null, filters: {}, search: '', sort: { key: null, dir: 1 } },
   drawer: { open: false, pn: null, listPns: [], record: null, columns: null, milestoneKeys: [], suggestions: [] },
@@ -175,7 +127,7 @@ var AppState = {
 function gsCall(fnName, args, onOk, onErr) {
   var runner = google.script.run
     .withSuccessHandler(function (result) {
-      if (!result || result.error) { onErr && onErr((result && result.error) || 'Bilinmeyen hata'); return; }
+      if (!result || result.error) { onErr && onErr((result && result.error) || 'Unknown error'); return; }
       onOk && onOk(result);
     })
     .withFailureHandler(function (err) { onErr && onErr(err && err.message ? err.message : String(err)); });
@@ -187,16 +139,19 @@ function gsCall(fnName, args, onOk, onErr) {
 // --------------------------------------------------------------------------
 
 document.addEventListener('DOMContentLoaded', function () {
+  document.documentElement.lang = 'en';
+  applyStaticTranslations();
   wireShell();
+  renderListeToggleBtn();
   gsCall('getUserPrefs', [], function (prefs) {
     var savedDark = prefs.darkMode;
     applyDarkMode(savedDark === 'true' ? true : (savedDark === 'false' ? false : osPrefersDark()));
-    setLanguage(prefs.lang === 'en' ? 'en' : 'tr', /*persist*/ false);
-    navigateTo('dashboard');
+    loadDashboard(false);
+    loadListe(false);
   }, function () {
     applyDarkMode(osPrefersDark());
-    setLanguage('tr', false);
-    navigateTo('dashboard');
+    loadDashboard(false);
+    loadListe(false);
   });
 });
 
@@ -207,10 +162,7 @@ function osPrefersDark() {
 
 function wireShell() {
   document.getElementById('dark-mode-btn').addEventListener('click', toggleDarkMode);
-  document.getElementById('lang-btn').addEventListener('click', toggleLanguage);
-  document.querySelectorAll('[data-nav]').forEach(function (el) {
-    el.addEventListener('click', function () { navigateTo(el.getAttribute('data-nav')); });
-  });
+  document.getElementById('liste-toggle-btn').addEventListener('click', toggleListeVisible);
   document.getElementById('drawer-scrim').addEventListener('click', closeDrawer);
   document.getElementById('drawer-close').addEventListener('click', closeDrawer);
   document.addEventListener('keydown', function (ev) {
@@ -219,6 +171,25 @@ function wireShell() {
   document.addEventListener('click', function (ev) {
     if (!ev.target.closest('.fdr-wrap')) closeAllFilterDrops();
   });
+}
+
+// --------------------------------------------------------------------------
+// Parça Listesi — artık ayrı bir sayfa değil, Dashboard'un altına gömülü
+// tek seferde açılabilir bir bölüm (kullanıcı talebi): kapalı başlar,
+// düğmeye tıklayınca açılır/kapanır. Veri arka planda zaten yüklenmiş
+// olduğu için açılışta tekrar sunucuya gidilmez.
+// --------------------------------------------------------------------------
+
+function toggleListeVisible() {
+  AppState.listeVisible = !AppState.listeVisible;
+  document.getElementById('liste-body').classList.toggle('hidden', !AppState.listeVisible);
+  renderListeToggleBtn();
+}
+function renderListeToggleBtn() {
+  var btn = document.getElementById('liste-toggle-btn');
+  if (!btn) return;
+  btn.innerHTML = icon(AppState.listeVisible ? 'chevronUp' : 'chevronDown', 13) +
+    '<span class="btn-label">' + (AppState.listeVisible ? t('hideList') : t('showList')) + '</span>';
 }
 
 // --------------------------------------------------------------------------
@@ -243,31 +214,6 @@ function toggleDarkMode() {
   }, function () { showToast(t('prefSaveError'), 'error'); });
 }
 
-// --------------------------------------------------------------------------
-// Dil — dil-yerellestirme.md "Gerçek Bir Örnek" deseni + 3 eksik kapatıldı
-// --------------------------------------------------------------------------
-
-function setLanguage(lang, persist) {
-  AppState.lang = (lang === 'en') ? 'en' : 'tr';
-  document.documentElement.lang = AppState.lang; // Eksik #1 kapatıldı
-  applyStaticTranslations();
-  var btn = document.getElementById('lang-btn');
-  if (btn) btn.innerHTML = '<span class="hdr-btn-lbl">' + t('langBtn') + '</span>' +
-    '<span aria-hidden="true">' + (AppState.lang === 'tr' ? 'TR' : 'EN') + '</span>';
-  if (persist !== false) {
-    gsCall('saveUserPref', ['lang', AppState.lang], function (ok) {
-      if (ok === false) showToast(t('prefSaveError'), 'error');
-    }, function () { showToast(t('prefSaveError'), 'error'); });
-  }
-  // Sayfa zaten yüklenmişse yeniden çiz — sabit metinlerin YANI SIRA dinamik
-  // içerik de (KPI etiketleri, tablo başlıkları, rozetler) t()'den geçmeli
-  // (Eksik #2 kapatıldı).
-  if (AppState.liste.rows) { renderDashboard(); renderListe(); }
-  if (AppState.drawer.open) renderDrawer();
-}
-
-function toggleLanguage() { setLanguage(AppState.lang === 'tr' ? 'en' : 'tr', true); }
-
 function applyStaticTranslations() {
   document.querySelectorAll('[data-i18n]').forEach(function (el) {
     el.textContent = t(el.getAttribute('data-i18n'));
@@ -275,37 +221,15 @@ function applyStaticTranslations() {
   document.getElementById('app-title').textContent = t('appTitle');
 }
 
-// Eksik #3 kapatıldı: sayı/tarih biçimi dile göre değişir.
-function localeTag() { return AppState.lang === 'tr' ? 'tr-TR' : 'en-US'; }
-function fmtNum(n) { return Number(n || 0).toLocaleString(localeTag()); }
+function fmtNum(n) { return Number(n || 0).toLocaleString('en-US'); }
 function fmtEur(n) {
-  return Number(n || 0).toLocaleString(localeTag(), { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' €';
+  return Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' €';
 }
 function fmtDate(iso) {
   if (!iso) return '—';
   var d = new Date(iso);
   if (isNaN(d.getTime())) return String(iso);
-  return d.toLocaleDateString(localeTag());
-}
-
-// --------------------------------------------------------------------------
-// Routing
-// --------------------------------------------------------------------------
-
-function navigateTo(page) {
-  AppState.currentPage = page;
-  document.querySelectorAll('.page-view').forEach(function (el) { el.classList.add('hidden'); });
-  var view = document.getElementById('view-' + page);
-  if (view) view.classList.remove('hidden');
-  document.querySelectorAll('[data-nav]').forEach(function (el) {
-    el.classList.toggle('active', el.getAttribute('data-nav') === page);
-  });
-  document.getElementById('hdr-page-title').textContent = t('navDashboard');
-
-  // Parça Listesi artık ayrı bir sayfa değil, Dashboard'un altına gömülü tek
-  // bir bölüm (kullanıcı talebi) — ikisi de aynı anda yüklenir.
-  loadDashboard(false);
-  loadListe(false);
+  return d.toLocaleDateString('en-US');
 }
 
 // --------------------------------------------------------------------------
@@ -335,7 +259,7 @@ function ensureRowsLoaded(force, onReady) {
   gsCall('getParcaListesi', [], function (data) {
     data.rows.forEach(function (r) {
       var launched = /launched/i.test(String(r.statusPlanned || '')) && /launched/i.test(String(r.statusActual || ''));
-      r.statusCategory = launched ? 'Launched' : (r.riskLevel === 'risk' ? 'Risk/Delay' : (r.riskLevel === 'gecikme' ? 'Gecikme' : 'Planlı'));
+      r.statusCategory = launched ? 'Launched' : (r.riskLevel === 'risk' ? 'Risk/Delay' : (r.riskLevel === 'gecikme' ? 'Delayed' : 'Planned'));
     });
     AppState.liste.rows = data.rows;
     AppState.liste.columns = data.columns;
@@ -384,15 +308,39 @@ function emptyStateHtml(iconName, title, sub, btnsHtml) {
 // gruplu tablolar/risk tablosu) yalnız süzülmüş alt kümeyi görür.
 // --------------------------------------------------------------------------
 
-// Diameter × Plant tablosu en fazla bu kadar Plant kolonu açar — kalanı
-// (varsa) tek bir "Diğer" kolonunda toplar (bucketTop'la aynı savunmacı
-// desen, çok fazla ince sütun okunmaz oluyor).
-var GROUPED_DA_MAX_PLANT_COLS = 6;
+// Diameter × Plant ve Project Type × Product tabloları aynı çapraz tablo
+// (pivot) desenini paylaşır: satır = birincil boyut, kolon = ikincil boyut
+// (en büyük N + "Diğer"/Other), hücre = OI toplamı. En fazla bu kadar kolon
+// açılır — kalanı tek bir "Diğer" kolonunda toplanır (bucketTop'la aynı
+// savunmacı desen, çok fazla ince sütun okunmaz oluyor).
+var GROUPED_PIVOT_MAX_COLS = 6;
+
+// cellSums: "satırAnahtarı|kolonAnahtarı" -> toplam. rowTotals/colTotals:
+// tek boyutlu toplamlar (sıralama ve en-büyük-N seçimi için).
+function buildPivot(cellSums, rowTotals, colTotals) {
+  var colEntries = Object.keys(colTotals).map(function (k) { return [k, colTotals[k]]; });
+  colEntries.sort(function (a, b) { return b[1] - a[1]; });
+  var cols = colEntries.slice(0, GROUPED_PIVOT_MAX_COLS).map(function (e) { return e[0]; });
+  var otherCols = colEntries.slice(GROUPED_PIVOT_MAX_COLS);
+  var hasOther = otherCols.length > 0;
+
+  var rowKeys = Object.keys(rowTotals).sort(function (a, b) { return rowTotals[b] - rowTotals[a]; });
+  return {
+    cols: cols,
+    hasOther: hasOther,
+    rows: rowKeys.map(function (rk) {
+      var cells = cols.map(function (c) { return cellSums[rk + '|' + c] || 0; });
+      var otherSum = hasOther ? otherCols.reduce(function (s, e) { return s + (cellSums[rk + '|' + e[0]] || 0); }, 0) : 0;
+      return { rowKey: rk, cells: cells, otherSum: otherSum, total: rowTotals[rk] };
+    })
+  };
+}
 
 function computeDashboardAggregates(rows) {
   var totalVolume = 0, totalEur = 0, launchedCount = 0, riskCount = 0;
   var plantCounts = {}, volByType = {}, oiByType = {}, productVolume = {};
-  var groupedDACells = {}, diameterTotals = {}, plantTotals = {}, groupedTF = {};
+  var daCells = {}, daRowTotals = {}, daColTotals = {}; // Diameter (satır) × Plant (kolon)
+  var tfCells = {}, tfRowTotals = {}, tfColTotals = {}; // Project Type (satır) × Product (kolon)
   var riskRows = [];
 
   rows.forEach(function (r) {
@@ -409,44 +357,27 @@ function computeDashboardAggregates(rows) {
     oiByType[typeKey] = (oiByType[typeKey] || 0) + (Number(r.oi) || 0);
     var prodKey = String(r.product || '—');
     productVolume[prodKey] = (productVolume[prodKey] || 0) + (Number(r.volume) || 0);
+    var oiVal = Number(r.oi) || 0;
 
-    // C (Diameter) + A (Plant) bazında K (OI) toplamı — Diameter satır,
-    // Plant kolon olacak şekilde bir çapraz tablo (pivot) besleniyor
-    // (kullanıcı talebi: Amiens/Bursa aynı satırda hizalı, diğer Diameter
-    // değerleri de ayrı satırlarda görülebilsin).
+    // C (Diameter) + A (Plant) bazında K (OI) toplamı — kullanıcı talebi:
+    // Amiens/Bursa gibi Plant değerleri aynı Diameter satırında hizalı,
+    // diğer Diameter değerleri de ayrı satırlarda görülebilsin.
     var diamKey = String(r.diameter == null ? '—' : r.diameter);
-    var daCellKey = diamKey + '|' + plantKey;
-    groupedDACells[daCellKey] = (groupedDACells[daCellKey] || 0) + (Number(r.oi) || 0);
-    diameterTotals[diamKey] = (diameterTotals[diamKey] || 0) + (Number(r.oi) || 0);
-    plantTotals[plantKey] = (plantTotals[plantKey] || 0) + (Number(r.oi) || 0);
+    var daKey = diamKey + '|' + plantKey;
+    daCells[daKey] = (daCells[daKey] || 0) + oiVal;
+    daRowTotals[diamKey] = (daRowTotals[diamKey] || 0) + oiVal;
+    daColTotals[plantKey] = (daColTotals[plantKey] || 0) + oiVal;
 
-    // B (Project Type) + F (Product) bazında K (OI) toplamı.
+    // B (Project Type) + F (Product) bazında K (OI) toplamı — baz Project
+    // Type (satır), Product kolon (kullanıcı talebi: eski düz liste çok
+    // satırlı/dağınıktı, aynı pivot deseniyle sadeleştirildi).
     var tfKey = typeKey + '|' + prodKey;
-    if (!groupedTF[tfKey]) groupedTF[tfKey] = { projectType: r.projectType, product: r.product, oiSum: 0 };
-    groupedTF[tfKey].oiSum += Number(r.oi) || 0;
+    tfCells[tfKey] = (tfCells[tfKey] || 0) + oiVal;
+    tfRowTotals[typeKey] = (tfRowTotals[typeKey] || 0) + oiVal;
+    tfColTotals[prodKey] = (tfColTotals[prodKey] || 0) + oiVal;
   });
 
   riskRows.sort(function (a, b) { return (a.riskLevel === 'risk' ? 0 : 1) - (b.riskLevel === 'risk' ? 0 : 1); });
-
-  // Plant kolonlarını toplam OI'ye göre sırala, en büyük N tanesini kolon
-  // yap — geri kalanı (varsa) "Diğer" kolonunda topla. Diameter satırları da
-  // en büyük toplamdan küçüğe sıralanır (mevcut davranışla tutarlı).
-  var plantEntries = Object.keys(plantTotals).map(function (k) { return [k, plantTotals[k]]; });
-  plantEntries.sort(function (a, b) { return b[1] - a[1]; });
-  var daPlantCols = plantEntries.slice(0, GROUPED_DA_MAX_PLANT_COLS).map(function (e) { return e[0]; });
-  var daOtherPlants = plantEntries.slice(GROUPED_DA_MAX_PLANT_COLS);
-  var daHasOther = daOtherPlants.length > 0;
-
-  var daDiameterKeys = Object.keys(diameterTotals).sort(function (a, b) { return diameterTotals[b] - diameterTotals[a]; });
-  var groupedDA = {
-    plantCols: daPlantCols,
-    hasOtherPlants: daHasOther,
-    rows: daDiameterKeys.map(function (d) {
-      var cells = daPlantCols.map(function (p) { return groupedDACells[d + '|' + p] || 0; });
-      var otherSum = daHasOther ? daOtherPlants.reduce(function (s, e) { return s + (groupedDACells[d + '|' + e[0]] || 0); }, 0) : 0;
-      return { diameter: d, cells: cells, otherSum: otherSum, total: diameterTotals[d] };
-    })
-  };
 
   return {
     kpis: { totalParts: rows.length, totalVolume: totalVolume, totalEur: totalEur, launchedCount: launchedCount, riskCount: riskCount },
@@ -454,8 +385,8 @@ function computeDashboardAggregates(rows) {
     volByType: volByType,
     oiByType: oiByType,
     productVolume: productVolume,
-    groupedDA: groupedDA,
-    groupedTF: Object.keys(groupedTF).map(function (k) { return groupedTF[k]; }).sort(function (a, b) { return b.oiSum - a.oiSum; }),
+    groupedDA: buildPivot(daCells, daRowTotals, daColTotals),
+    groupedTF: buildPivot(tfCells, tfRowTotals, tfColTotals),
     riskRows: riskRows.slice(0, 50)
   };
 }
@@ -490,15 +421,22 @@ function defaultYear(years) {
   var current = new Date().getFullYear();
   return (years.indexOf(current) > -1) ? current : years[0];
 }
+// Planlanan OI (K kolonu) ile gerçekleşen OI'yi (X kolonu, oiActual —
+// kullanıcı talebi) aynı çeyreklere göre kümülatif topluyor, ikisi
+// arasındaki fark çizgi grafikte görülebilsin diye.
 function computeQuarterlyOI(rows, year) {
-  var qSums = [0, 0, 0, 0];
+  var qPlanned = [0, 0, 0, 0], qActual = [0, 0, 0, 0];
   rows.forEach(function (r) {
     if (r.planYear !== year || !r.planQuarter) return;
-    qSums[r.planQuarter - 1] += Number(r.oi) || 0;
+    qPlanned[r.planQuarter - 1] += Number(r.oi) || 0;
+    qActual[r.planQuarter - 1] += Number(r.oiActual) || 0;
   });
-  var cumulative = [], running = 0;
-  for (var i = 0; i < 4; i++) { running += qSums[i]; cumulative.push(running); }
-  return { quarterly: qSums, cumulative: cumulative };
+  var plannedCumulative = [], actualCumulative = [], runP = 0, runA = 0;
+  for (var i = 0; i < 4; i++) {
+    runP += qPlanned[i]; plannedCumulative.push(runP);
+    runA += qActual[i]; actualCumulative.push(runA);
+  }
+  return { plannedQuarterly: qPlanned, actualQuarterly: qActual, plannedCumulative: plannedCumulative, actualCumulative: actualCumulative };
 }
 
 function renderYearSegment(years, current) {
@@ -526,7 +464,9 @@ function renderDashboard() {
   AppState.dashboard.agg = agg;
 
   var qYear = (yearFilter === 'all') ? defaultYear(years) : yearFilter;
-  var qData = (qYear === 'all') ? { quarterly: [0, 0, 0, 0], cumulative: [0, 0, 0, 0] } : computeQuarterlyOI(rows, qYear);
+  var qData = (qYear === 'all')
+    ? { plannedQuarterly: [0, 0, 0, 0], actualQuarterly: [0, 0, 0, 0], plannedCumulative: [0, 0, 0, 0], actualCumulative: [0, 0, 0, 0] }
+    : computeQuarterlyOI(rows, qYear);
   AppState.dashboard.qData = qData;
   AppState.dashboard.qYear = qYear;
 
@@ -554,13 +494,20 @@ function renderDashboard() {
     '</div>';
 
   if (qYear !== 'all') {
-    // Kullanıcı talebi: bu grafik tam genişlikte + 300px ile çok yer
-    // kaplıyordu — varsayılan artık kompakt (140px), sağ üstteki düğmeyle
-    // isteyen büyütüp tekrar küçültebiliyor (chart-hd + chart-toggle-btn).
+    // Kullanıcı talebi (tekrarlanan): bu grafik hâlâ çok yer kaplıyordu —
+    // varsayılan artık çok kompakt (90px, eksensiz/legendsız mini görünüm),
+    // sağ üstteki düğmeyle isteyen büyütüp tam detaya (eksenler + legend)
+    // geçebiliyor (chart-hd + chart-toggle-btn).
     var oiExpanded = !!AppState.dashboard.oiExpanded;
+    var planTotal = qData.plannedCumulative[3];
+    var actualTotal = qData.actualCumulative[3];
+    var diff = actualTotal - planTotal;
+    var diffStr = (diff > 0 ? '+' : '') + fmtEur(diff);
     html += '<div class="card" style="margin-bottom:var(--space-lg);">' +
       '<div class="chart-hd">' +
-      '<h2 class="chart-title" style="margin-bottom:0;">' + qYear + ' ' + t('quarterlyOiTitle') + ' ⇒ ' + fmtEur(qData.cumulative[3]) + '</h2>' +
+      '<h2 class="chart-title" style="margin-bottom:0;">' + qYear + ' ' + t('quarterlyOiTitle') +
+      ' — ' + t('oiPlannedLabel') + ' ' + fmtEur(planTotal) + ' · ' + t('oiActualLabel') + ' ' + fmtEur(actualTotal) +
+      ' · ' + t('oiDiffLabel') + ' ' + diffStr + '</h2>' +
       '<button class="chart-toggle-btn" id="oi-toggle" aria-label="' + escAttr(oiExpanded ? t('collapseChart') : t('expandChart')) + '" title="' + escAttr(oiExpanded ? t('collapseChart') : t('expandChart')) + '">' +
       icon(oiExpanded ? 'chevronUp' : 'chevronDown', 16) + '</button>' +
       '</div>' +
@@ -574,10 +521,8 @@ function renderDashboard() {
     chartCardHtml('chart-product', t('chartProductTitle')) +
     '</div>';
 
-  html += groupedDAPivotHtml(t('groupedDATitle'), agg.groupedDA);
-  html += groupedTableHtml(t('groupedTFTitle'), ['colProjectType', 'colProduct', 'colOiSum'], agg.groupedTF, function (row) {
-    return [escHtml(row.projectType || '—'), escHtml(row.product || '—'), fmtNum(row.oiSum)];
-  });
+  html += pivotTableHtml(t('groupedDATitle'), t('colDiameter'), agg.groupedDA);
+  html += pivotTableHtml(t('groupedTFTitle'), t('colProjectType'), agg.groupedTF);
 
   html += '<div class="card"><h2 class="chart-title">' + t('riskTableTitle') + '</h2>';
   if (agg.riskRows.length) {
@@ -610,7 +555,7 @@ function renderDashboard() {
   drawVolByTypeChart(agg.volByType);
   drawOiByTypeChart(agg.oiByType);
   drawProductChart(agg.productVolume);
-  if (qYear !== 'all') drawQuarterlyChart(qData);
+  if (qYear !== 'all') drawQuarterlyChart(qData, !oiExpanded);
 }
 
 function chartCardHtml(canvasId, title) {
@@ -618,41 +563,25 @@ function chartCardHtml(canvasId, title) {
     '<div class="chart-canvas-wrap"><canvas id="' + canvasId + '"></canvas></div></div>';
 }
 
-// Diameter (satır) × Plant (kolon) çapraz tablosu — kullanıcı talebi:
-// Amiens/Bursa gibi Plant değerleri aynı satırda yan yana hizalı görünsün,
-// diğer Diameter değerleri de kaybolmadan alt satırlarda kalsın.
-function groupedDAPivotHtml(title, pivot) {
+// Çapraz tablo (pivot) render'ı — Diameter×Plant ve Project Type×Product
+// ikisi de aynı şekli kullanır: rowHeaderLabel birincil boyutun kolon
+// başlığı, pivot.cols ikincil boyutun (en büyük N + varsa "Diğer") kolon
+// başlıkları. Kullanıcı talebi: iki tablo da veri temiz/az yer kaplasın diye
+// düz liste yerine bu tek çapraz-tablo desenini paylaşıyor.
+function pivotTableHtml(title, rowHeaderLabel, pivot) {
   var html = '<div class="card" style="margin-bottom:var(--space-lg);"><h2 class="chart-title">' + title + '</h2>';
   if (!pivot.rows.length) {
     html += emptyStateHtml('search', t('listEmptyTitle'), t('listEmptySub'), '');
   } else {
-    html += '<div class="tbl-wrap"><table class="dt"><thead><tr><th>' + t('colDiameter') + '</th>';
-    pivot.plantCols.forEach(function (p) { html += '<th class="cf-num">' + escHtml(p || '—') + '</th>'; });
-    if (pivot.hasOtherPlants) html += '<th class="cf-num">' + t('otherBucket') + '</th>';
+    html += '<div class="tbl-wrap"><table class="dt"><thead><tr><th>' + rowHeaderLabel + '</th>';
+    pivot.cols.forEach(function (c) { html += '<th class="cf-num">' + escHtml(c || '—') + '</th>'; });
+    if (pivot.hasOther) html += '<th class="cf-num">' + t('otherBucket') + '</th>';
     html += '<th class="cf-num">' + t('colTotal') + '</th></tr></thead><tbody>';
     pivot.rows.forEach(function (row) {
-      html += '<tr><td>' + escHtml(row.diameter) + '</td>';
+      html += '<tr><td>' + escHtml(row.rowKey) + '</td>';
       row.cells.forEach(function (v) { html += '<td class="cf-num">' + (v ? fmtNum(v) : '—') + '</td>'; });
-      if (pivot.hasOtherPlants) html += '<td class="cf-num">' + (row.otherSum ? fmtNum(row.otherSum) : '—') + '</td>';
+      if (pivot.hasOther) html += '<td class="cf-num">' + (row.otherSum ? fmtNum(row.otherSum) : '—') + '</td>';
       html += '<td class="cf-num" style="font-weight:700;">' + fmtNum(row.total) + '</td></tr>';
-    });
-    html += '</tbody></table></div>';
-  }
-  html += '</div>';
-  return html;
-}
-
-function groupedTableHtml(title, colKeys, rows, rowFn) {
-  var html = '<div class="card" style="margin-bottom:var(--space-lg);"><h2 class="chart-title">' + title + '</h2>';
-  if (!rows.length) {
-    html += emptyStateHtml('search', t('listEmptyTitle'), t('listEmptySub'), '');
-  } else {
-    html += '<div class="tbl-wrap"><table class="dt"><thead><tr>';
-    colKeys.forEach(function (ck, i) { html += '<th' + (i === colKeys.length - 1 ? ' class="cf-num"' : '') + '>' + t(ck) + '</th>'; });
-    html += '</tr></thead><tbody>';
-    rows.slice(0, 100).forEach(function (row) {
-      var cells = rowFn(row);
-      html += '<tr>' + cells.map(function (c, i) { return '<td' + (i === cells.length - 1 ? ' class="cf-num"' : '') + '>' + c + '</td>'; }).join('') + '</tr>';
     });
     html += '</tbody></table></div>';
   }
@@ -743,15 +672,26 @@ function drawPieChart(canvasId, chartKey, counts) {
   if (!labels.length) { showChartNoData(wrap, canvas); return; }
   showCanvas(wrap, canvas);
   var values = labels.map(function (l) { return counts[l]; });
+  var total = values.reduce(function (a, b) { return a + b; }, 0);
   var palette = chartPalette();
   var colors = labels.map(function (l, i) { return palette[i % palette.length]; });
   if (AppState.charts[chartKey]) AppState.charts[chartKey].destroy();
   AppState.charts[chartKey] = new Chart(canvas.getContext('2d'), {
     type: 'doughnut',
+    // Kullanıcı talebi: pasta grafiklerde dilimin üstünde her zaman yüzde
+    // görünsün — yalnız bu chart'a (global registrasyon yok) datalabels
+    // plugin'i eklendi, bar/çizgi grafikleri etkilenmiyor.
+    plugins: (window.ChartDataLabels ? [window.ChartDataLabels] : []),
     data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 2, borderColor: cssVar('--card-bg') }] },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'right', labels: { color: cssVar('--text'), boxWidth: 12, font: { size: 10 } } } },
+      plugins: {
+        legend: { position: 'right', labels: { color: cssVar('--text'), boxWidth: 12, font: { size: 10 } } },
+        datalabels: {
+          color: '#fff', font: { weight: '700', size: 11 },
+          formatter: function (value) { return total ? Math.round(value / total * 100) + '%' : ''; }
+        }
+      },
       onClick: function (evt, els) {
         if (!els.length) return;
         applyChartClickFilter(labels[els[0].index]);
@@ -764,10 +704,13 @@ function drawBarChart(canvasId, chartKey, dataObj, colorIndex) {
   var canvas = document.getElementById(canvasId);
   if (!canvas) return;
   var wrap = canvas.closest('.chart-canvas-wrap');
-  var labels = Object.keys(dataObj || {});
-  if (!labels.length) { showChartNoData(wrap, canvas); return; }
+  // Kullanıcı talebi: kategoriler her zaman büyükten küçüğe sıralı gösterilsin.
+  var entries = Object.keys(dataObj || {}).map(function (k) { return [k, dataObj[k]]; });
+  entries.sort(function (a, b) { return b[1] - a[1]; });
+  if (!entries.length) { showChartNoData(wrap, canvas); return; }
   showCanvas(wrap, canvas);
-  var values = labels.map(function (l) { return dataObj[l]; });
+  var labels = entries.map(function (e) { return e[0]; });
+  var values = entries.map(function (e) { return e[1]; });
   if (AppState.charts[chartKey]) AppState.charts[chartKey].destroy();
   AppState.charts[chartKey] = new Chart(canvas.getContext('2d'), {
     type: 'bar',
@@ -791,37 +734,47 @@ function drawProductChart(productVolume) { drawBarChart('chart-product', 'produc
 function drawVolByTypeChart(volByType) { drawBarChart('chart-volbytype', 'volbytype', volByType, 0); }
 function drawOiByTypeChart(oiByType) { drawBarChart('chart-oibytype', 'oibytype', oiByType, 1); }
 
-// Çeyreklik kümülatif OI çizgisi — "2026 Order Intake ⇒ X €" tarzı referans
-// grafiğin sadeleştirilmiş karşılığı: 4 çeyrek, her nokta o çeyreğe kadarki
-// toplam OI. Tekil proje/anlaşma etiketleri (referanstaki gibi) bu turda yok
-// — veri modelinde onu besleyecek ayrı bir "anlaşma" kaydı yok, yalnız P/N
-// başına tek bir çeyrek değeri var.
-function drawQuarterlyChart(qData) {
+// Çeyreklik kümülatif OI çizgisi — Plan (K kolonu) ile Actual (X kolonu,
+// kullanıcı talebi) iki ayrı çizgi olarak gösteriliyor: Plan kesikli/soluk,
+// Actual dolu/vurgulu — aradaki fark hem görsel olarak hem de üstteki
+// başlıkta (Δ) okunabiliyor. compact=true iken (varsayılan, sade görünüm
+// için) eksenler/legend gizlenir, yalnız iki renkli çizgi kalır; büyüt
+// düğmesine basılınca (compact=false) tam detay açılır.
+function drawQuarterlyChart(qData, compact) {
   var canvas = document.getElementById('chart-quarterly');
   if (!canvas) return;
   var wrap = canvas.closest('.chart-canvas-wrap');
   showCanvas(wrap, canvas);
   if (AppState.charts.quarterly) AppState.charts.quarterly.destroy();
-  var accent = chartPalette()[0];
+  var palette = chartPalette();
+  var plannedColor = cssVar('--muted') || '#94a3b8';
+  var actualColor = palette[0];
   AppState.charts.quarterly = new Chart(canvas.getContext('2d'), {
     type: 'line',
     data: {
       labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-      datasets: [{
-        data: qData.cumulative, borderColor: accent, backgroundColor: accent,
-        pointBackgroundColor: accent, pointRadius: 5, pointHoverRadius: 7,
-        borderWidth: 2.5, tension: 0.25, fill: false
-      }]
+      datasets: [
+        {
+          label: t('oiPlannedLabel'), data: qData.plannedCumulative,
+          borderColor: plannedColor, backgroundColor: plannedColor, borderDash: [6, 4],
+          pointRadius: 3, pointHoverRadius: 5, borderWidth: 2, tension: 0.25, fill: false
+        },
+        {
+          label: t('oiActualLabel'), data: qData.actualCumulative,
+          borderColor: actualColor, backgroundColor: actualColor,
+          pointRadius: 4, pointHoverRadius: 6, borderWidth: 2.5, tension: 0.25, fill: false
+        }
+      ]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: function (ctx) { return fmtEur(ctx.parsed.y); } } }
+        legend: { display: !compact, position: 'top', labels: { color: cssVar('--text'), boxWidth: 10, font: { size: 10 } } },
+        tooltip: { callbacks: { label: function (ctx) { return ctx.dataset.label + ': ' + fmtEur(ctx.parsed.y); } } }
       },
       scales: {
-        x: { ticks: { color: cssVar('--muted'), font: { size: 11 } }, grid: { display: false } },
-        y: { ticks: { color: cssVar('--muted'), font: { size: 10 }, callback: function (v) { return fmtNum(v); } }, grid: { color: 'rgba(148,163,184,0.15)' }, beginAtZero: true }
+        x: { display: !compact, ticks: { color: cssVar('--muted'), font: { size: 11 } }, grid: { display: false } },
+        y: { display: !compact, beginAtZero: true, ticks: { color: cssVar('--muted'), font: { size: 10 }, callback: function (v) { return fmtNum(v); } }, grid: { color: 'rgba(148,163,184,0.15)' } }
       }
     }
   });
@@ -853,7 +806,7 @@ function refreshChartsForTheme() {
   if (AppState.charts.volbytype) drawVolByTypeChart(agg.volByType);
   if (AppState.charts.oibytype) drawOiByTypeChart(agg.oiByType);
   if (AppState.charts.product) drawProductChart(agg.productVolume);
-  if (AppState.charts.quarterly) drawQuarterlyChart(AppState.dashboard.qData);
+  if (AppState.charts.quarterly) drawQuarterlyChart(AppState.dashboard.qData, !AppState.dashboard.oiExpanded);
 }
 
 // --------------------------------------------------------------------------
@@ -1081,7 +1034,7 @@ function renderFilterDropList(key) {
   var isStatusCat = (key === 'statusCategory');
   var html = '<div class="fdr-searchwrap"><input class="fdr-search" type="search" placeholder="' + t('searchPlaceholder') + '" data-fdr-search="' + key + '"></div><div class="fdr-list">';
   values.forEach(function (v) {
-    var label = isStatusCat ? (v === 'Launched' ? t('statusLaunched') : v === 'Planlı' ? t('statusPlanned') : v === 'Gecikme' ? t('statusDelay') : t('statusRisk')) : v;
+    var label = isStatusCat ? (v === 'Launched' ? t('statusLaunched') : v === 'Planned' ? t('statusPlanned') : v === 'Delayed' ? t('statusDelay') : t('statusRisk')) : v;
     var id = 'fdr-' + key + '-' + btoa(unescape(encodeURIComponent(v))).replace(/[^a-zA-Z0-9]/g, '');
     html += '<label class="fdr-item" data-fdr-row="' + escAttr(v.toLowerCase()) + '"><input type="checkbox" id="' + id + '" value="' + escAttr(v) + '"' + (selected.indexOf(v) > -1 ? ' checked' : '') + '> ' + escHtml(label) + '</label>';
   });
@@ -1192,7 +1145,7 @@ function renderDrawer() {
 
   html += '<div class="drawer-sec">' + t('drawerSecCommercial') + '</div>';
   html += propRow('pnCompetitor', 'edit') + propRow('attrPPCA', 'edit') + propRow('attrDisc', 'edit') + propRow('attrRB', 'edit') +
-    propRow('volume', 'edit') + propRow('oi', 'edit') + propRow('coveragePlus', 'edit') + propRow('eur', 'edit') +
+    propRow('volume', 'edit') + propRow('oi', 'edit') + propRow('oiActual', 'edit') + propRow('coveragePlus', 'edit') + propRow('eur', 'edit') +
     propRow('statusPlanned', 'edit') + propRow('statusActual', 'checkCircle');
 
   html += '<div class="drawer-sec">' + t('drawerSecMilestones') + '</div>';
@@ -1209,7 +1162,7 @@ function fieldLabelKey(key) {
     plant: 'fieldPlant', projectType: 'fieldProjectType', diameter: 'fieldDiameter', pn: 'fieldPn',
     pnCompetitor: 'fieldPnCompetitor', product: 'fieldProduct',
     attrPPCA: 'fieldAttrPPCA', attrDisc: 'fieldAttrDisc', attrRB: 'fieldAttrRB',
-    volume: 'fieldVolume', oi: 'fieldOi', coveragePlus: 'fieldCoveragePlus', eur: 'fieldEur',
+    volume: 'fieldVolume', oi: 'fieldOi', oiActual: 'fieldOiActual', coveragePlus: 'fieldCoveragePlus', eur: 'fieldEur',
     statusPlanned: 'fieldStatusPlanned', statusActual: 'fieldStatusActual',
     msSamplePurchase: 'msSamplePurchase', msCompetitorAnalysis: 'msCompetitorAnalysis',
     msProductDefinition: 'msProductDefinition', msCommercialAgreement: 'msCommercialAgreement',

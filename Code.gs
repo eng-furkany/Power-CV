@@ -36,6 +36,11 @@ var COLUMN_MAP = [
   { key: 'msVehicleTest',         col: 21, label: 'Vehicle Test',         editable: true,  type: 'combo' },
   { key: 'msCRD',                 col: 22, label: 'CRD',                  editable: true,  type: 'combo' },
   { key: 'launchSheet',           col: 23, label: 'Launch Sheet',         editable: true,  type: 'date' },
+  // X kolonu (kullanıcı talebi): gerçekleşen OI — K kolonundaki (planlanan
+  // OI) karşılığı olan gerçekleşen değer. İkisi birlikte yıllık Order Intake
+  // çizgi grafiğinde Plan/Actual olarak karşılaştırılır (bkz. JavaScript.html
+  // computeQuarterlyOI/drawQuarterlyChart).
+  { key: 'oiActual',              col: 24, label: 'OI Actual',            editable: true,  type: 'number' },
   { key: 'eur',                   col: 28, label: 'EUR',                  editable: true,  type: 'number' }
 ];
 
@@ -73,7 +78,7 @@ function include(filename) {
 
 function _requireUser_() {
   var email = Session.getActiveUser().getEmail();
-  if (!email) throw new Error('Oturum doğrulanamadı — Google hesabınızla erişmelisiniz.');
+  if (!email) throw new Error('Session could not be verified — please access with your Google account.');
   return email;
 }
 
@@ -90,7 +95,7 @@ function _colByKey_(key) {
 
 function _sheet_() {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
-  if (!sh) throw new Error('"' + SHEET_NAME + '" sekmesi bulunamadı.');
+  if (!sh) throw new Error('Sheet "' + SHEET_NAME + '" was not found.');
   return sh;
 }
 
@@ -165,7 +170,7 @@ function getParcaDetay(pn) {
     for (var i = 0; i < rows.length; i++) {
       if (String(rows[i].pn) === String(pn)) { found = rows[i]; break; }
     }
-    if (!found) return { error: 'Kayıt bulunamadı: ' + pn };
+    if (!found) return { error: 'Record not found: ' + pn };
     found.riskLevel = computeRiskLevel_(found);
     found.planYear = computePlanYear_(found);
     found.planQuarter = computePlanQuarter_(found);
@@ -183,19 +188,19 @@ function updateParcaField(pn, field, value) {
   _requireUser_();
   try {
     var col = _colByKey_(field);
-    if (!col) return { error: 'Bilinmeyen alan: ' + field };
-    if (!col.editable) return { error: '"' + col.label + '" alanı düzenlenemez.' };
+    if (!col) return { error: 'Unknown field: ' + field };
+    if (!col.editable) return { error: 'Field "' + col.label + '" is not editable.' };
 
     var sh = _sheet_();
     var last = sh.getLastRow();
-    if (last < 2) return { error: 'Kayıt bulunamadı: ' + pn };
+    if (last < 2) return { error: 'Record not found: ' + pn };
 
     var pnValues = sh.getRange(2, 4, last - 1, 1).getValues(); // D kolonu
     var targetRow = -1;
     for (var i = 0; i < pnValues.length; i++) {
       if (String(pnValues[i][0]) === String(pn)) { targetRow = i + 2; break; }
     }
-    if (targetRow === -1) return { error: 'Kayıt bulunamadı: ' + pn };
+    if (targetRow === -1) return { error: 'Record not found: ' + pn };
 
     var cell = sh.getRange(targetRow, col.col);
     var oldValue = cell.getValue();
@@ -203,7 +208,7 @@ function updateParcaField(pn, field, value) {
     var newValue = value;
     if (col.type === 'number') {
       newValue = (value === '' || value === null || typeof value === 'undefined') ? '' : Number(value);
-      if (newValue !== '' && isNaN(newValue)) return { error: 'Sayısal bir değer girin.' };
+      if (newValue !== '' && isNaN(newValue)) return { error: 'Please enter a numeric value.' };
     } else if (col.type === 'date') {
       newValue = value ? new Date(value) : '';
     } else {
@@ -222,7 +227,7 @@ function updateParcaField(pn, field, value) {
     } else {
       wrote = (String(verify) === String(newValue));
     }
-    if (!wrote) return { error: 'Yazma doğrulanamadı — sayfayı yenileyip tekrar deneyin.' };
+    if (!wrote) return { error: 'Write could not be verified — please refresh the page and try again.' };
 
     return {
       ok: true,
@@ -262,8 +267,8 @@ function saveUserPref(key, value) {
 
 function _logUsage_(page) {
   try {
-    var email = Session.getActiveUser().getEmail() || 'bilinmiyor';
-    var sh = _logSheet_('UsageLog', ['Tarih', 'Kullanıcı', 'Sayfa']);
+    var email = Session.getActiveUser().getEmail() || 'unknown';
+    var sh = _logSheet_('UsageLog', ['Date', 'User', 'Page']);
     sh.appendRow([new Date(), email, page]);
   } catch (err) {
     // best-effort — loglama başarısız olursa sayfa açılışı bloklanmaz.
@@ -273,7 +278,7 @@ function _logUsage_(page) {
 function getUsageSummary() {
   _requireUser_();
   try {
-    var sh = _logSheet_('UsageLog', ['Tarih', 'Kullanıcı', 'Sayfa']);
+    var sh = _logSheet_('UsageLog', ['Date', 'User', 'Page']);
     var last = sh.getLastRow();
     if (last < 2) return { ok: true, last7Days: 0, uniqueUsers: 0 };
     var values = sh.getRange(2, 1, last - 1, 3).getValues();
@@ -302,7 +307,7 @@ function getUsageSummary() {
 function _setupApp() {
   _removeTriggers_('dailyRiskScan_');
   ScriptApp.newTrigger('dailyRiskScan_').timeBased().everyDays(1).atHour(7).create();
-  return 'Kurulum tamamlandı: günlük risk taraması her gün ~07:00 için ayarlandı.';
+  return 'Setup complete: daily risk scan scheduled for ~07:00 every day.';
 }
 
 function _removeTriggers_(fnName) {
