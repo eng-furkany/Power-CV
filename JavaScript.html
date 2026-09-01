@@ -527,7 +527,7 @@ function renderDashboard() {
     kpiCard(t('kpiTotalEur'), fmtEur(k.totalEur)) +
     kpiCard(t('kpiLaunched'), fmtNum(k.launchedCount)) +
     kpiCard(t('kpiRisk'), fmtNum(k.riskCount), k.riskCount > 0) +
-    kpiCard(t('kpiCoverage'), k.covAvg == null ? '—' : appendUnit(fmtNum(k.covAvg), unitFor('coveragePlus'))) +
+    kpiCard(t('kpiCoverage'), k.covAvg == null ? '—' : fmtNum(k.covAvg) + '%') +
     '</div>';
 
   // Kullanıcı talebi (tekrarlanan): bu grafik tam genişlikte çok yer
@@ -1325,6 +1325,7 @@ function propRow(key, iconName) {
   var displayVal;
   if (col && col.type === 'date') displayVal = fmtDate(raw);
   else if (col && col.type === 'number') displayVal = (raw === '' || raw == null) ? '—' : fmtNum(raw);
+  else if (col && col.type === 'percent') displayVal = (raw === '' || raw == null) ? '—' : fmtNum(raw) + '%';
   else if (col && col.type === 'combo') displayVal = lexLabel(raw) || '—';
   else if (isTextarea) displayVal = (raw === '' || raw == null) ? '<span class="prop-empty-hint">' + t('noComment') + '</span>' : escHtml(raw);
   else displayVal = (raw === '' || raw == null) ? '—' : escHtml(raw);
@@ -1362,7 +1363,7 @@ function activateEdit(key) {
   var raw = rec[key];
   var inputHtml;
   var inputType = 'text';
-  if (col.type === 'number') inputType = 'number';
+  if (col.type === 'number' || col.type === 'percent') inputType = 'number';
   if (col.type === 'date') inputType = 'date';
 
   if (col.type === 'combo') {

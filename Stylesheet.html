@@ -394,8 +394,11 @@ img { max-width: 100%; }
 .prop-empty-hint { color: var(--faint); font-style: italic; }
 .prop-textarea { height: auto; min-height: 72px; padding: 8px 10px; resize: vertical; font-family: inherit; }
 
-.comment-flag { color: var(--muted); margin-left: 4px; vertical-align: -2px; }
-.comment-flag svg { width: 14px; height: 14px; stroke: currentColor; fill: none; }
+/* Kullanıcı bulgusu: küçük/soluk ikon Risk/Gecikme tablosunda gözden
+   kaçıyordu — belirgin marka rengi + biraz daha büyük ikon + "help"
+   imleci, üzerine gelince (title tooltip) yorumun tamamı görünür. */
+.comment-flag { display: inline-flex; color: var(--valeo-blue-text); margin-left: 5px; vertical-align: -3px; cursor: help; }
+.comment-flag svg { width: 16px; height: 16px; stroke: currentColor; fill: none; }
 
 .milestone-list { display: flex; flex-direction: column; gap: 0; }
 .risk-banner {

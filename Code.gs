@@ -20,7 +20,11 @@ var COLUMN_MAP = [
   { key: 'attrRB',                col: 9,  label: 'Attribute (RB)',       editable: true,  type: 'text' },
   { key: 'volume',                col: 10, label: 'Volume',               editable: true,  type: 'number' },
   { key: 'oi',                    col: 11, label: 'OI',                   editable: true,  type: 'number' },
-  { key: 'coveragePlus',          col: 12, label: 'Coverage +',           editable: true,  type: 'number' },
+  // Kullanıcı talebi (2026-09-01): "Coverage % olarak göstersek güzel
+  // olacak" — sayı olarak saklanmaya devam ediyor (ör. 45), yalnız
+  // istemci tarafında her yerde '%' ekiyle gösteriliyor (bkz.
+  // JavaScript.html propRow/kpiCard — 'percent' tipi).
+  { key: 'coveragePlus',          col: 12, label: 'Coverage +',           editable: true,  type: 'percent' },
   // 2. revizyon (kullanıcı talebi): eski tek "Status" (M) ikiye ayrıldı —
   // Status Planned (M, aynı kolon, yeniden adlandırıldı) + Status Actual
   // (N, YENİ kolon). N'den itibaren her şey bir sağa kaydı (eskiden N=14
@@ -234,7 +238,7 @@ function updateParcaField(pn, field, value) {
     var oldValue = cell.getValue();
 
     var newValue = value;
-    if (col.type === 'number') {
+    if (col.type === 'number' || col.type === 'percent') {
       newValue = (value === '' || value === null || typeof value === 'undefined') ? '' : Number(value);
       if (newValue !== '' && isNaN(newValue)) return { error: 'Please enter a numeric value.' };
     } else if (col.type === 'date') {
