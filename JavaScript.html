@@ -454,7 +454,23 @@ function computeQuarterlyOI(rows, year) {
     runP += qPlanned[i]; plannedCumulative.push(runP);
     runA += qActual[i]; actualCumulative.push(runA);
   }
-  return { plannedQuarterly: qPlanned, actualQuarterly: qActual, plannedCumulative: plannedCumulative, actualCumulative: actualCumulative };
+  // Kullanıcı talebi: henüz başlamamış (gelecek) çeyrekler gösterilmesin —
+  // "Q4'te planlanan projeler henüz gerçekleşmediği için data yanıltıyor."
+  // Bugünün tarihine göre seçili yıl için kaç çeyrek başlamış/geçmiş
+  // olduğunu hesaplıyoruz; ondan sonrası (henüz gerçekleşmeyen çeyrekler)
+  // grafikten VE başlıktaki Plan/Actual toplamlarından tamamen çıkarılıyor
+  // — hem Plan hem Actual "bugüne kadar" aynı dönemi kıyaslasın diye
+  // (önceki tasarım tüm yılın planını, henüz biten kısmi Actual'a karşı
+  // gösteriyordu — bu da farkı yapay şekilde büyütüyordu).
+  var now = new Date();
+  var curYear = now.getFullYear();
+  var curQuarter = Math.floor(now.getMonth() / 3) + 1;
+  var visibleQuarters = (year < curYear) ? 4 : (year === curYear ? curQuarter : 0);
+  return {
+    plannedQuarterly: qPlanned, actualQuarterly: qActual,
+    plannedCumulative: plannedCumulative, actualCumulative: actualCumulative,
+    visibleQuarters: visibleQuarters
+  };
 }
 
 function renderYearSegment(years, current) {
@@ -522,10 +538,16 @@ function renderDashboard() {
   var oiCardHtml = '';
   if (qYear !== 'all') {
     var oiExpanded = !!AppState.dashboard.oiExpanded;
-    var oiTitle = qYear + ' ' + t('quarterlyOiTitle');
+    // Kullanıcı talebi: henüz gerçekleşmemiş (gelecek) çeyrekler grafikte
+    // gösterilmiyor — Plan/Actual başlık toplamları da tüm yıl yerine
+    // yalnız "bugüne kadar geçen" çeyrekleri kıyaslıyor (aksi halde 3
+    // çeyreklik Actual, 4 çeyreklik tüm-yıl Plan'a karşı yapay bir fark
+    // gösteriyordu).
+    var vq = qData.visibleQuarters;
+    var oiTitle = qYear + ' ' + t('quarterlyOiTitle') + (vq > 0 && vq < 4 ? ' (Q1–Q' + vq + ')' : '');
     if (oiExpanded) {
-      var planTotal = qData.plannedCumulative[3];
-      var actualTotal = qData.actualCumulative[3];
+      var planTotal = vq > 0 ? qData.plannedCumulative[vq - 1] : 0;
+      var actualTotal = vq > 0 ? qData.actualCumulative[vq - 1] : 0;
       var diff = actualTotal - planTotal;
       var diffStr = (diff > 0 ? '+' : '') + fmtEur(diff);
       oiTitle += ' — ' + t('oiPlannedLabel') + ' ' + fmtEur(planTotal) + ' · ' + t('oiActualLabel') + ' ' + fmtEur(actualTotal) + ' · ' + t('oiDiffLabel') + ' ' + diffStr;
@@ -822,6 +844,12 @@ function drawQuarterlyChart(qData, compact) {
   var canvas = document.getElementById('chart-quarterly');
   if (!canvas) return;
   var wrap = canvas.closest('.chart-canvas-wrap');
+  // Kullanıcı talebi: henüz gerçekleşmemiş (gelecek) çeyrekler grafikten
+  // tamamen çıkarılır — "Q4'te planlanan projeler henüz gerçekleşmediği
+  // için data yanıltıyor" — Plan çizgisi de dahil, yalnız bugüne kadar
+  // geçen çeyrekler çizilir.
+  var vq = (qData.visibleQuarters != null) ? qData.visibleQuarters : 4;
+  if (vq <= 0) { showChartNoData(wrap, canvas); return; }
   showCanvas(wrap, canvas);
   if (AppState.charts.quarterly) AppState.charts.quarterly.destroy();
   var palette = chartPalette();
@@ -830,15 +858,15 @@ function drawQuarterlyChart(qData, compact) {
   AppState.charts.quarterly = new Chart(canvas.getContext('2d'), {
     type: 'line',
     data: {
-      labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+      labels: ['Q1', 'Q2', 'Q3', 'Q4'].slice(0, vq),
       datasets: [
         {
-          label: t('oiPlannedLabel'), data: qData.plannedCumulative,
+          label: t('oiPlannedLabel'), data: qData.plannedCumulative.slice(0, vq),
           borderColor: plannedColor, backgroundColor: plannedColor, borderDash: [6, 4],
           pointRadius: 3, pointHoverRadius: 5, borderWidth: 2, tension: 0.25, fill: false
         },
         {
-          label: t('oiActualLabel'), data: qData.actualCumulative,
+          label: t('oiActualLabel'), data: qData.actualCumulative.slice(0, vq),
           borderColor: actualColor, backgroundColor: actualColor,
           pointRadius: 4, pointHoverRadius: 6, borderWidth: 2.5, tension: 0.25, fill: false
         }
