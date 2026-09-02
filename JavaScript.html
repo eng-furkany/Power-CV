@@ -252,6 +252,19 @@ function fmtDate(iso) {
 function parseSearchTerms(str) {
   return String(str || '').split(',').map(function (s) { return _norm(s.trim()); }).filter(Boolean);
 }
+// Kullanıcı talebi (2026-09-02, "Launched = 0" bulgusu): daha önce bir
+// satırın "Launched" sayılması için M (Status Planned) VE N (Status Actual)
+// kolonlarının ikisinin de birebir "Launched" metni içermesi şartı vardı
+// (docs/TSD.md'deki eski karar) — gerçek kullanımda yalnız N güncellenip
+// M'nin eski çeyrek metninde kalması yaygın olduğundan bu şart neredeyse hiç
+// sağlanmıyor, "gerçekte launched projeler var ama KPI 0 gösteriyor" sonucunu
+// doğuruyordu. Artık tek ölçüt: W (Launch Sheet) kolonuna bir tarih/değer
+// girilmiş olması — parçanın fiilen launch sürecine alındığının somut,
+// M/N'nin serbest metnine bağlı olmayan tek işareti budur.
+function isRowLaunched(r) {
+  return !!(r.launchSheet && String(r.launchSheet).trim());
+}
+
 function rowSearchHay(r) {
   return _norm([r.pn, r.plant, r.product, r.projectType, r.statusPlanned, r.statusActual, r.comment].join(' '));
 }
@@ -269,7 +282,7 @@ function ensureRowsLoaded(force, onReady) {
   if (AppState.liste.rows && !force) { onReady(); return; }
   gsCall('getParcaListesi', [], function (data) {
     data.rows.forEach(function (r) {
-      var launched = /launched/i.test(String(r.statusPlanned || '')) && /launched/i.test(String(r.statusActual || ''));
+      var launched = isRowLaunched(r);
       r.statusCategory = launched ? 'Launched' : (r.riskLevel === 'risk' ? 'Risk/Delay' : (r.riskLevel === 'gecikme' ? 'Delayed' : 'Planned'));
     });
     AppState.liste.rows = data.rows;
@@ -357,8 +370,7 @@ function computeDashboardAggregates(rows) {
   rows.forEach(function (r) {
     totalVolume += Number(r.volume) || 0;
     totalEur += Number(r.eur) || 0;
-    var isLaunched = /launched/i.test(String(r.statusPlanned || '')) && /launched/i.test(String(r.statusActual || ''));
-    if (isLaunched) launchedCount++;
+    if (isRowLaunched(r)) launchedCount++;
     if (r.riskLevel === 'risk' || r.riskLevel === 'gecikme') { riskCount++; riskRows.push(r); }
 
     var plantKey = String(r.plant || '—');
@@ -594,7 +606,7 @@ function renderDashboard() {
         '<td>' + escHtml(r.plant) + '</td><td>' + escHtml(r.product) + '</td>' +
         '<td>' + escHtml(r.projectType || '—') + '</td>' +
         '<td class="cf-num">' + fmtNum(r.volume) + '</td>' +
-        '<td>' + riskChip(r.riskLevel, /launched/i.test(String(r.statusPlanned || '')) && /launched/i.test(String(r.statusActual || ''))) + '</td>' +
+        '<td>' + riskChip(r.riskLevel, isRowLaunched(r)) + '</td>' +
         // Kullanıcı bulgusu (tekrarlanan): küçük bir ikon yeterince fark
         // edilmiyordu — artık yorum metni doğrudan kendi kolonunda,
         // kısaltılmış (ellipsis) olarak görünüyor; tam metin hover'da.
