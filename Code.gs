@@ -326,3 +326,154 @@ function dailyRiskScan_() {
     sh.appendRow([new Date(), 'HATA', String((err && err.message) || err), '']);
   }
 }
+
+// ---------------------------------------------------------------------------
+// Wishlist (Live Wishlist - Clutch CV AMEAO + Europe) — ikinci, salt-okunur
+// bir dashboard sayfası. Bu script'in bağlı olduğu Sheet1'den TAMAMEN FARKLI
+// bir Google Sheet'ten okur (kendi ID'si aşağıda) — kullanıcının ayrıca
+// paylaştığı bir "wishlist"/proje-boru-hattı tablosu. Detay: docs/TSD.md
+// "Wishlist" bölümü.
+//
+// Bu Apps Script projesinin çalıştığı kimlik (appsscript.json:
+// executeAs=USER_ACCESSING) bu sheet'e erişebilmeli — yani her kullanıcı
+// kendi Google hesabıyla WISHLIST_SPREADSHEET_ID'ye en az görüntüleyici
+// olarak paylaşılmış olmalı. Paylaşımı yoksa openById() hata fırlatır, bu da
+// aşağıda yakalanıp { error } olarak döner — istemci bunu "şu an alınamıyor +
+// Tekrar dene" olarak gösterir (grafikler.md "yüklenemeyen veri ≠ boş veri").
+// ---------------------------------------------------------------------------
+
+var WISHLIST_SPREADSHEET_ID = '1KB_-wTAFxPsaxMmMC2YODLPyB7JL0NsPgLvsiBoWFQQ';
+var WISHLIST_SHEET_NAME = 'LIVE WISHLIST CV';
+
+// Kaynak sheet'in gerçek yapısı: başlık B/C/vb. hücrelere gömülü satır
+// sonlarıyla (Alt+Enter) yazılmış TEK bir başlık satırı (4. satır), veri
+// 5. satırdan başlıyor — CSV dışa aktarımında bu \n'ler yüzünden birden çok
+// satırmış gibi görünüyordu, gerçek yapı bu.
+var WISHLIST_HEADER_ROW = 4;
+var WISHLIST_DATA_START_ROW = 5;
+var WISHLIST_MAX_COL = 95; // A..CQ, 95 sütun
+
+// Sütun SIRASINA göre değil, kaynak sheet'in 95 sütununu tek tek inceleyerek
+// (2026-09 analizi) belirlenen SABİT kolon numaralarına göre okunur — bu
+// script'in Sheet1 COLUMN_MAP'iyle aynı desen. Bazı başlık metinleri
+// (EUROPE/TMEAO/Americas) sheet'te BİRDEN FAZLA farklı bölümde tekrarlandığı
+// için (CarPark / VS Potential / Specific Target Prices) yalnız başlık
+// metnine bakarak eşlemek güvenli değil — bu yüzden sabit indeks tercih
+// edildi. Kaynak sheet'in sütunları yeniden düzenlenirse bu harita elle
+// güncellenmeli; _wishlistVerifyHeader_ bunu sessizce yanlış okumak yerine
+// açık bir hatayla yakalamaya çalışır (madde 2, sağlama).
+var WISHLIST_COLUMN_MAP = [
+  { key: 'flag',                col: 1 },
+  { key: 'wlYear',               col: 2 },
+  { key: 'category',             col: 3 },
+  { key: 'productRange',         col: 6 },
+  { key: 'dia',                   col: 7 },
+  { key: 'vsRegion',              col: 8 },
+  { key: 'projectCode',           col: 11 },
+  { key: 'vsPartNumber',          col: 12 },
+  { key: 'prio',                   col: 13 },
+  { key: 'notes',                  col: 14 },
+  { key: 'manufacturer',           col: 17 },
+  { key: 'model',                  col: 18 },
+  { key: 'competitorBrand',        col: 24 },
+  { key: 'competitorProduct',      col: 25 },
+  { key: 'totalVsPotential',       col: 37 },
+  { key: 'yearlyPotentialAvg5y',   col: 60 },
+  { key: 'priceEurope',            col: 73 },
+  { key: 'priceTmeao',             col: 74 },
+  { key: 'priceAmericas',          col: 75 },
+  { key: 'carPark',                col: 82 },
+  { key: 'site',                   col: 85 },
+  { key: 'launchPlan',             col: 86 },
+  { key: 'plannedMonth',           col: 87 },
+  { key: 'projectStatusRaw',       col: 88 },
+  { key: 'orderIntake',            col: 89 },
+  { key: 'action',                 col: 92 },
+  { key: 'reasonCancelled',        col: 93 },
+  { key: 'samplesAvailability',    col: 94 },
+  { key: 'technology',             col: 95 }
+];
+
+function _wishlistSheet_() {
+  var ss = SpreadsheetApp.openById(WISHLIST_SPREADSHEET_ID);
+  var sh = ss.getSheetByName(WISHLIST_SHEET_NAME);
+  if (!sh) throw new Error('"' + WISHLIST_SHEET_NAME + '" sekmesi bulunamadı — sekme adı değişmiş olabilir.');
+  return sh;
+}
+
+function _normHeaderCell_(v) {
+  return String(v == null ? '' : v).replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
+// Sağlama (madde 2): tüm 95 sütunu tek tek doğrulamak yerine, birkaç
+// belirgin/az değişecek başlığı sabit konumunda kontrol eder — sheet'in
+// üçüncü bir kişi tarafından yeniden düzenlenmesi durumunda WISHLIST_COLUMN_MAP
+// ile gerçek veri arasındaki uyumsuzluğu SESSİZCE yanlış okumak yerine açık
+// bir hatayla yakalar.
+function _wishlistVerifyHeader_(sh) {
+  var checks = [
+    { col: 2, expect: 'wl year' },
+    { col: 8, expect: 'vs region' },
+    { col: 88, expect: 'project status' }
+  ];
+  for (var i = 0; i < checks.length; i++) {
+    var actual = _normHeaderCell_(sh.getRange(WISHLIST_HEADER_ROW, checks[i].col).getValue());
+    if (actual.indexOf(checks[i].expect) === -1) {
+      throw new Error(
+        'Wishlist sheet yapısı beklenenden farklı görünüyor (satır ' + WISHLIST_HEADER_ROW + ', kolon ' +
+        checks[i].col + ' başlığı "' + checks[i].expect + '" içermiyor — okunan: "' + actual + '"). ' +
+        'Sütunlar taşınmış/eklenmiş olabilir; Code.gs WISHLIST_COLUMN_MAP elle güncellenmeli.'
+      );
+    }
+  }
+}
+
+function _wishlistRowToRecord_(values, rowIndex) {
+  var rec = { _row: rowIndex };
+  WISHLIST_COLUMN_MAP.forEach(function (c) {
+    var v = values[c.col - 1];
+    rec[c.key] = (v instanceof Date) ? v.toISOString() : v;
+  });
+  return rec;
+}
+
+function _readWishlistRows_() {
+  var sh = _wishlistSheet_();
+  _wishlistVerifyHeader_(sh);
+  var last = sh.getLastRow();
+  if (last < WISHLIST_DATA_START_ROW) return [];
+  var numRows = last - WISHLIST_DATA_START_ROW + 1;
+  var values = sh.getRange(WISHLIST_DATA_START_ROW, 1, numRows, WISHLIST_MAX_COL).getValues();
+  var out = [];
+  for (var i = 0; i < values.length; i++) {
+    // WL YEAR (B) ve Project Category (C) ikisi de boşsa satır boş kabul edilir.
+    if (String(values[i][1]).trim() === '' && String(values[i][2]).trim() === '') continue;
+    out.push(_wishlistRowToRecord_(values[i], WISHLIST_DATA_START_ROW + i));
+  }
+  return out;
+}
+
+function getWishlistData() {
+  _requireUser_();
+  try {
+    var rows = _readWishlistRows_();
+    var now = new Date();
+    rows.forEach(function (r) {
+      // Ham projectStatusRaw'a hiç dokunulmaz (StatusLex ilkesi) — yalnız
+      // KPI/grafik kategorizasyonu için türetilmiş bir alan eklenir.
+      r.statusBucket = wishlistStatusBucket_(r.projectStatusRaw);
+      r.attention = wishlistAttention_(r, now);
+      r.priceEuropeNum = parseWishlistPrice_(r.priceEurope);
+      r.priceTmeaoNum = parseWishlistPrice_(r.priceTmeao);
+      r.priceAmericasNum = parseWishlistPrice_(r.priceAmericas);
+    });
+    return {
+      ok: true,
+      rows: rows,
+      updatedAt: now.toISOString(),
+      sourceUrl: 'https://docs.google.com/spreadsheets/d/' + WISHLIST_SPREADSHEET_ID + '/edit#gid=0'
+    };
+  } catch (err) {
+    return { error: String((err && err.message) || err) };
+  }
+}
