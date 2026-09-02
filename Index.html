@@ -34,6 +34,10 @@
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
       <span data-i18n="navListe">Parça Listesi</span>
     </button>
+    <button class="sidebar-item" data-nav="wishlist">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      <span data-i18n="navWishlist">Wishlist</span>
+    </button>
   </nav>
 
   <main id="main-content">
@@ -54,6 +58,16 @@
       </div>
       <div id="liste-body"></div>
     </section>
+
+    <section id="view-wishlist" class="page-view hidden">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title" data-i18n="navWishlist">Wishlist</h1>
+          <p class="page-subtitle" data-i18n="wishlistSubtitle">Live Wishlist — Clutch CV AMEAO + Europe</p>
+        </div>
+      </div>
+      <div id="wishlist-body"></div>
+    </section>
   </main>
 
   <nav id="bottom-nav" aria-label="Mobil gezinme">
@@ -64,6 +78,10 @@
     <button class="bn-item" data-nav="liste">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
       <span data-i18n="navListe">Parça Listesi</span>
+    </button>
+    <button class="bn-item" data-nav="wishlist">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      <span data-i18n="navWishlist">Wishlist</span>
     </button>
   </nav>
 
@@ -77,6 +95,23 @@
       </button>
     </div>
     <div class="drawer-body" id="drawer-body"></div>
+  </aside>
+
+  <!-- Wishlist detay paneli — ayrı bir aside, çünkü #drawer YUKARIDA
+       düzenlenebilir Parça Detayı'na bağlı (openDrawer/saveField vb.);
+       Wishlist salt-okunur bir InfoModal-tarzı hızlı bakış olduğu için
+       (detay-popup.md), aynı state/API'yi paylaşmak yerine kendi küçük
+       singleton'ını taşır. Görsel kabuk (.drawer/.drawer-scrim) AYNI CSS. -->
+  <div class="drawer-scrim" id="wishlist-drawer-scrim"></div>
+  <aside class="drawer" id="wishlist-drawer" role="dialog" aria-modal="true" aria-labelledby="wishlist-drawer-hd-title">
+    <div class="drawer-hd">
+      <span class="drawer-hd-title" id="wishlist-drawer-hd-title">Detay</span>
+      <div class="drawer-nav" id="wishlist-drawer-nav"></div>
+      <button class="drawer-close" id="wishlist-drawer-close" aria-label="Kapat">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="drawer-body" id="wishlist-drawer-body"></div>
   </aside>
 
   <div id="savebar"></div>

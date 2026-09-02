@@ -86,7 +86,33 @@ var T = {
     prefSaveError: 'Tercih kaydedilemedi — bu oturumda geçerli, kalıcı değil.',
     loading: 'Yükleniyor…', close: 'Kapat', prev: 'Önceki kayıt', next: 'Sonraki kayıt',
     updatedAt: 'Güncelleme',
-    langBtn: 'EN'
+    langBtn: 'EN',
+
+    // --- Wishlist sayfası (Live Wishlist - Clutch CV AMEAO + Europe) ---
+    navWishlist: 'Wishlist',
+    wishlistSubtitle: 'Live Wishlist — Clutch CV AMEAO + Europe',
+    kpiWlTotal: 'Toplam Proje', kpiWlLaunched: 'Launched', kpiWlCA: 'CA Aşamasında',
+    kpiWlDev: 'Geliştirmede', kpiWlCancelled: 'İptal / Tahsis Edilmedi', kpiWlAttention: 'Dikkat',
+    chartWlStatusTitle: 'Durum Dağılımı', chartWlYearTitle: 'Yıla Göre Proje Sayısı',
+    chartWlRegionTitle: 'Bölge Dağılımı', chartWlSiteTitle: 'Site Dağılımı',
+    filterWlYear: 'WL Year', filterCategory: 'Kategori', filterVsRegion: 'VS Region', filterSite: 'Site',
+    colWlYear: 'WL Year', colCategory: 'Kategori', colManufacturer: 'Üretici', colModel: 'Model',
+    colVsRegion: 'VS Region', colSite: 'Site', colLaunchPlan: 'Launch Plan', colTechnology: 'Teknoloji',
+    wlStatusLaunched: 'Launched', wlStatusCA: 'CA Aşamasında', wlStatusDev: 'Geliştirmede',
+    wlStatusCancelled: 'İptal / Tahsis Edilmedi', wlStatusUnspecified: 'Belirtilmemiş', wlStatusOther: 'Diğer',
+    wlSearchPlaceholder: 'Proje kodu, üretici, model, VS Part Number, teknoloji ara — virgülle birden çok değer yazabilirsiniz',
+    wlEmptySub: 'Süzgece uyan bir proje yok.',
+    wlDrawerTitle: 'Wishlist Detayı', wlSecStatus: 'Durum & Aksiyon',
+    wlAttentionBanner: 'Launch Plan hedeflenen çeyreği geçti, proje hâlâ Launched değil.',
+    wlOpenSheet: 'Sheet\'te aç',
+    fieldDia: 'Çap (Dia)', fieldVsRegion: 'VS Region', fieldProjectCode: 'Proje Kodu',
+    fieldVsPartNumber: 'VS Part Number', fieldPrio: 'Öncelik', fieldManufacturer: 'Üretici', fieldModel: 'Model',
+    fieldCompetitorBrand: 'Rakip Marka', fieldCompetitorProduct: 'Rakip Ürün', fieldSite: 'Site',
+    fieldLaunchPlan: 'Launch Plan', fieldPlannedMonth: 'Planlanan Ay', fieldTechnology: 'Teknoloji',
+    fieldPriceEurope: 'Hedef Fiyat (Europe)', fieldPriceTmeao: 'Hedef Fiyat (TMEAO)', fieldPriceAmericas: 'Hedef Fiyat (Americas)',
+    fieldOrderIntake: 'Order Intake', fieldSamplesAvailability: 'Numune Durumu', fieldTotalVsPotential: 'Toplam VS Potansiyeli',
+    fieldCategory: 'Kategori', fieldProductRange: 'Ürün Grubu', fieldNotes: 'Notlar', fieldAction: 'Aksiyon',
+    fieldReasonCancelled: 'İptal/Tahsis Sebebi', fieldStatusRaw: 'Ham Durum (PROJECT STATUS)'
   },
   en: {
     appTitle: 'Power CV Launch Plan',
@@ -131,9 +157,51 @@ var T = {
     prefSaveError: 'Preference not saved — session only, not persisted.',
     loading: 'Loading…', close: 'Close', prev: 'Previous record', next: 'Next record',
     updatedAt: 'Updated',
-    langBtn: 'TR'
+    langBtn: 'TR',
+
+    // --- Wishlist page (Live Wishlist - Clutch CV AMEAO + Europe) ---
+    navWishlist: 'Wishlist',
+    wishlistSubtitle: 'Live Wishlist — Clutch CV AMEAO + Europe',
+    kpiWlTotal: 'Total Projects', kpiWlLaunched: 'Launched', kpiWlCA: 'CA In Progress',
+    kpiWlDev: 'In Development', kpiWlCancelled: 'Cancelled / Not Allocated', kpiWlAttention: 'Attention',
+    chartWlStatusTitle: 'Status Breakdown', chartWlYearTitle: 'Projects by Year',
+    chartWlRegionTitle: 'Region Breakdown', chartWlSiteTitle: 'Site Breakdown',
+    filterWlYear: 'WL Year', filterCategory: 'Category', filterVsRegion: 'VS Region', filterSite: 'Site',
+    colWlYear: 'WL Year', colCategory: 'Category', colManufacturer: 'Manufacturer', colModel: 'Model',
+    colVsRegion: 'VS Region', colSite: 'Site', colLaunchPlan: 'Launch Plan', colTechnology: 'Technology',
+    wlStatusLaunched: 'Launched', wlStatusCA: 'CA In Progress', wlStatusDev: 'In Development',
+    wlStatusCancelled: 'Cancelled / Not Allocated', wlStatusUnspecified: 'Unspecified', wlStatusOther: 'Other',
+    wlSearchPlaceholder: 'Search project code, manufacturer, model, VS Part Number, technology — comma-separate for multiple values',
+    wlEmptySub: 'No project matches the current filters.',
+    wlDrawerTitle: 'Wishlist Detail', wlSecStatus: 'Status & Action',
+    wlAttentionBanner: 'Launch Plan is past its target quarter and the project is not yet Launched.',
+    wlOpenSheet: 'Open in Sheet',
+    fieldDia: 'Diameter (Dia)', fieldVsRegion: 'VS Region', fieldProjectCode: 'Project Code',
+    fieldVsPartNumber: 'VS Part Number', fieldPrio: 'Priority', fieldManufacturer: 'Manufacturer', fieldModel: 'Model',
+    fieldCompetitorBrand: 'Competitor Brand', fieldCompetitorProduct: 'Competitor Product', fieldSite: 'Site',
+    fieldLaunchPlan: 'Launch Plan', fieldPlannedMonth: 'Planned Month', fieldTechnology: 'Technology',
+    fieldPriceEurope: 'Target Price (Europe)', fieldPriceTmeao: 'Target Price (TMEAO)', fieldPriceAmericas: 'Target Price (Americas)',
+    fieldOrderIntake: 'Order Intake', fieldSamplesAvailability: 'Samples Availability', fieldTotalVsPotential: 'Total VS Potential',
+    fieldCategory: 'Category', fieldProductRange: 'Product Range', fieldNotes: 'Notes', fieldAction: 'Action',
+    fieldReasonCancelled: 'Reason (Cancelled/Not Allocated)', fieldStatusRaw: 'Raw Status (PROJECT STATUS)'
   }
 };
+
+// Wishlist durum-bucket → Durum Rozeti sınıfı + etiket anahtarı eşlemesi
+// (riskChip'in wishlist karşılığı). Ham projectStatusRaw HİÇ değişmez —
+// yalnız statusBucket (Wishlist.gs wishlistStatusBucket_'ten gelir) çevrilir.
+var WISHLIST_STATUS_META = {
+  Launched:                { cls: 'st-ok',   icon: 'checkCircle',   labelKey: 'wlStatusLaunched' },
+  CA:                      { cls: 'st-info', icon: null,            labelKey: 'wlStatusCA' },
+  InDevelopment:            { cls: 'st-warn', icon: null,            labelKey: 'wlStatusDev' },
+  CancelledOrNotAllocated:  { cls: 'st-err',  icon: 'xCircle',       labelKey: 'wlStatusCancelled' },
+  Unspecified:              { cls: 'st-neut', icon: null,            labelKey: 'wlStatusUnspecified' },
+  Other:                    { cls: 'st-neut', icon: null,            labelKey: 'wlStatusOther' }
+};
+function wishlistStatusChip(bucket) {
+  var meta = WISHLIST_STATUS_META[bucket] || WISHLIST_STATUS_META.Other;
+  return statusChipHtml(meta.cls, meta.icon, t(meta.labelKey));
+}
 
 function t(key) { return (T[AppState.lang] && T[AppState.lang][key]) || key; }
 
@@ -162,6 +230,8 @@ var AppState = {
   dashboard: { searchInput: '', riskSearch: '', agg: null, year: null, qData: null, qYear: null },
   liste: { rows: null, columns: null, filters: {}, search: '', sort: { key: null, dir: 1 } },
   drawer: { open: false, pn: null, listPns: [], record: null, columns: null, milestoneKeys: [], suggestions: [] },
+  wishlist: { rows: null, updatedAt: null, filters: {}, search: '', sort: { key: null, dir: 1 } },
+  wishlistDrawer: { open: false, row: -1, listRows: [] },
   charts: {}
 };
 
@@ -211,11 +281,17 @@ function wireShell() {
   });
   document.getElementById('drawer-scrim').addEventListener('click', closeDrawer);
   document.getElementById('drawer-close').addEventListener('click', closeDrawer);
+  document.getElementById('wishlist-drawer-scrim').addEventListener('click', closeWishlistDrawer);
+  document.getElementById('wishlist-drawer-close').addEventListener('click', closeWishlistDrawer);
   document.addEventListener('keydown', function (ev) {
-    if (ev.key === 'Escape' && AppState.drawer.open) closeDrawer();
+    if (ev.key !== 'Escape') return;
+    // Kademeli Escape: en üstteki katman önce kapanır — ikisi aynı anda
+    // açık olamaz zaten (iki ayrı sayfanın drawer'ı), yine de sırayı sabit tut.
+    if (AppState.wishlistDrawer.open) closeWishlistDrawer();
+    else if (AppState.drawer.open) closeDrawer();
   });
   document.addEventListener('click', function (ev) {
-    if (!ev.target.closest('.fdr-wrap')) closeAllFilterDrops();
+    if (!ev.target.closest('.fdr-wrap')) { closeAllFilterDrops(); closeAllWishlistFilterDrops(); }
   });
 }
 
@@ -262,7 +338,9 @@ function setLanguage(lang, persist) {
   // (Eksik #2 kapatıldı).
   if (AppState.currentPage === 'dashboard' && AppState.dashboard) renderDashboard();
   if (AppState.currentPage === 'liste' && AppState.liste.rows) renderListe();
+  if (AppState.currentPage === 'wishlist' && AppState.wishlist.rows) renderWishlist();
   if (AppState.drawer.open) renderDrawer();
+  if (AppState.wishlistDrawer.open) renderWishlistDrawer();
 }
 
 function toggleLanguage() { setLanguage(AppState.lang === 'tr' ? 'en' : 'tr', true); }
@@ -299,10 +377,12 @@ function navigateTo(page) {
   document.querySelectorAll('[data-nav]').forEach(function (el) {
     el.classList.toggle('active', el.getAttribute('data-nav') === page);
   });
-  document.getElementById('hdr-page-title').textContent = (page === 'dashboard') ? t('navDashboard') : t('navListe');
+  var titleKey = (page === 'dashboard') ? 'navDashboard' : (page === 'wishlist') ? 'navWishlist' : 'navListe';
+  document.getElementById('hdr-page-title').textContent = t(titleKey);
 
   if (page === 'dashboard') loadDashboard(false);
   if (page === 'liste') loadListe(false);
+  if (page === 'wishlist') loadWishlist(false);
 }
 
 // --------------------------------------------------------------------------
@@ -777,12 +857,20 @@ function showCanvas(wrap, canvas) {
 function cssVar(name) { return getComputedStyle(document.body).getPropertyValue(name).trim(); }
 function refreshChartsForTheme() {
   var agg = AppState.dashboard.agg;
-  if (!agg) return;
-  if (AppState.charts.plant) drawPieChart('chart-plant', 'plant', agg.plantCounts);
-  if (AppState.charts.volbytype) drawVolByTypeChart(agg.volByType);
-  if (AppState.charts.oibytype) drawOiByTypeChart(agg.oiByType);
-  if (AppState.charts.product) drawProductChart(agg.productVolume);
-  if (AppState.charts.quarterly) drawQuarterlyChart(AppState.dashboard.qData);
+  if (agg) {
+    if (AppState.charts.plant) drawPieChart('chart-plant', 'plant', agg.plantCounts);
+    if (AppState.charts.volbytype) drawVolByTypeChart(agg.volByType);
+    if (AppState.charts.oibytype) drawOiByTypeChart(agg.oiByType);
+    if (AppState.charts.product) drawProductChart(agg.productVolume);
+    if (AppState.charts.quarterly) drawQuarterlyChart(AppState.dashboard.qData);
+  }
+  var wlAgg = AppState.wishlist.agg;
+  if (wlAgg) {
+    if (AppState.charts.wlStatus) drawPieChart('chart-wl-status', 'wlStatus', wlAgg.statusChartCounts);
+    if (AppState.charts.wlYear) drawBarChart('chart-wl-year', 'wlYear', wlAgg.yearCounts, 0);
+    if (AppState.charts.wlRegion) drawPieChart('chart-wl-region', 'wlRegion', wlAgg.regionCounts);
+    if (AppState.charts.wlSite) drawBarChart('chart-wl-site', 'wlSite', wlAgg.siteCounts, 2);
+  }
 }
 
 // --------------------------------------------------------------------------
@@ -1039,6 +1127,436 @@ function wireFilterDropList(key, drop) {
       });
     });
   }
+}
+
+// --------------------------------------------------------------------------
+// Wishlist (Live Wishlist - Clutch CV AMEAO + Europe) — ikinci, salt-okunur
+// sayfa. Aynı sayfa içinde KPI + grafikler + filtrelenebilir tam tablo
+// birleşik (Dashboard+Liste'nin birleşimi gibi) — tek bir veri kaynağından
+// beslenen, 2 alt-görünüme bölünmeyi gerektirmeyecek kadar küçük bir ekran
+// (bkz. docs/layout-wishlist.md, mvp-akisi.md "orantılı mühendislik").
+// Sunucudan gelen satır önbelleği (AppState.wishlist.rows) salt-okunur;
+// düzenleme yok, bu yüzden detay paneli de ayrı bir sunucu çağrısı yapmadan
+// önbellekten okur (InfoModal deseni, detay-popup.md).
+// --------------------------------------------------------------------------
+
+var WISHLIST_VISIBLE_COLS = ['wlYear', 'category', 'manufacturer', 'model', 'vsRegion', 'site', 'launchPlan', 'statusBucket'];
+var WISHLIST_FILTERABLE = ['wlYear', 'category', 'vsRegion', 'site', 'statusBucket'];
+
+function ensureWishlistRowsLoaded(force, onReady) {
+  if (AppState.wishlist.rows && !force) { onReady(); return; }
+  gsCall('getWishlistData', [], function (data) {
+    AppState.wishlist.rows = data.rows;
+    AppState.wishlist.updatedAt = data.updatedAt;
+    AppState.wishlist.sourceUrl = data.sourceUrl;
+    onReady(null);
+  }, function (err) { onReady(err); });
+}
+
+function loadWishlist(force) {
+  var root = document.getElementById('wishlist-body');
+  root.innerHTML = '<div class="loading-overlay"><span class="spinner"></span>' + t('loading') + '</div>';
+  ensureWishlistRowsLoaded(force, function (err) {
+    if (err) {
+      root.innerHTML = '<div class="chart-error">' + icon('alertTriangle', 22) + '<div>' + t('loadError') + '</div>' +
+        '<button class="btn btn-outlined" onclick="loadWishlist(true)">' + icon('refreshCw', 14) + ' ' + t('retry') + '</button></div>';
+      return;
+    }
+    renderWishlist();
+  });
+}
+
+// Genel/tablo aramasının taradığı alanlar — rowMatchesTerms'in (Liste'de
+// kullanılan) aynısı ama Wishlist'in kendi alan adlarıyla.
+function wishlistRowSearchHay(r) {
+  return _norm([r.projectCode, r.manufacturer, r.model, r.vsPartNumber, r.technology, r.notes, r.site].join(' '));
+}
+function wishlistRowMatchesTerms(r, terms) {
+  if (!terms || !terms.length) return true;
+  var hay = wishlistRowSearchHay(r);
+  return terms.some(function (term) { return hay.indexOf(term) > -1; });
+}
+
+function computeWishlistAggregates(rows) {
+  var statusCounts = {}, statusChartCounts = {}, yearCounts = {}, regionCounts = {}, siteCounts = {};
+  var attentionCount = 0;
+  rows.forEach(function (r) {
+    statusCounts[r.statusBucket] = (statusCounts[r.statusBucket] || 0) + 1;
+    var chartLabel = t((WISHLIST_STATUS_META[r.statusBucket] || WISHLIST_STATUS_META.Other).labelKey);
+    statusChartCounts[chartLabel] = (statusChartCounts[chartLabel] || 0) + 1;
+    var yearKey = String(r.wlYear || '—');
+    yearCounts[yearKey] = (yearCounts[yearKey] || 0) + 1;
+    var regionKey = String(r.vsRegion || '—');
+    regionCounts[regionKey] = (regionCounts[regionKey] || 0) + 1;
+    var siteKey = String(r.site || '—');
+    siteCounts[siteKey] = (siteCounts[siteKey] || 0) + 1;
+    if (r.attention) attentionCount++;
+  });
+  return {
+    kpis: {
+      total: rows.length,
+      launched: statusCounts.Launched || 0,
+      ca: statusCounts.CA || 0,
+      dev: statusCounts.InDevelopment || 0,
+      cancelled: statusCounts.CancelledOrNotAllocated || 0,
+      attention: attentionCount
+    },
+    statusChartCounts: statusChartCounts,
+    yearCounts: yearCounts,
+    regionCounts: bucketTop(regionCounts, 8),
+    siteCounts: bucketTop(siteCounts, 8)
+  };
+}
+
+function renderWishlist() {
+  var allRows = AppState.wishlist.rows || [];
+  var agg = computeWishlistAggregates(allRows);
+  AppState.wishlist.agg = agg;
+  var filtered = applyWishlistFilters();
+
+  var root = document.getElementById('wishlist-body');
+  var html = '';
+
+  if (AppState.wishlist.updatedAt) {
+    html += '<p class="page-subtitle" style="margin-bottom:var(--space-md);">' + t('updatedAt') + ': ' + fmtDate(AppState.wishlist.updatedAt) + '</p>';
+  }
+
+  var k = agg.kpis;
+  html += '<div class="kpi-row">' +
+    kpiCard(t('kpiWlTotal'), fmtNum(k.total)) +
+    kpiCard(t('kpiWlLaunched'), fmtNum(k.launched)) +
+    kpiCard(t('kpiWlCA'), fmtNum(k.ca)) +
+    kpiCard(t('kpiWlDev'), fmtNum(k.dev)) +
+    kpiCard(t('kpiWlCancelled'), fmtNum(k.cancelled)) +
+    kpiCard(t('kpiWlAttention'), fmtNum(k.attention), k.attention > 0) +
+    '</div>';
+
+  html += '<div class="chart-grid">' +
+    chartCardHtml('chart-wl-status', t('chartWlStatusTitle')) +
+    chartCardHtml('chart-wl-year', t('chartWlYearTitle')) +
+    chartCardHtml('chart-wl-region', t('chartWlRegionTitle')) +
+    chartCardHtml('chart-wl-site', t('chartWlSiteTitle')) +
+    '</div>';
+
+  html += renderWishlistFilterBar();
+  html += renderWishlistActiveChips();
+
+  if (!filtered.length) {
+    html += emptyStateHtml('search', t('listEmptyTitle'), t('wlEmptySub'),
+      '<button class="btn btn-outlined" onclick="clearWishlistFilters()">' + t('clearFilters') + '</button>');
+  } else {
+    html += '<div class="tbl-wrap"><table class="dt m-cards" id="wishlist-table"><thead><tr>';
+    WISHLIST_VISIBLE_COLS.forEach(function (key) {
+      var label = wishlistColLabel(key);
+      var sortIndicator = (AppState.wishlist.sort.key === key) ? (AppState.wishlist.sort.dir === 1 ? icon('chevronDown', 11) : icon('chevronUp', 11)) : '';
+      html += '<th class="sortable" data-wl-sort="' + key + '">' + label + ' <span class="sort-arrow">' + sortIndicator + '</span></th>';
+    });
+    html += '</tr></thead><tbody>';
+    filtered.forEach(function (r) {
+      html += '<tr>';
+      WISHLIST_VISIBLE_COLS.forEach(function (key) {
+        var label = wishlistColLabel(key);
+        var cell;
+        if (key === 'manufacturer') {
+          cell = '<button class="pn-link" data-open-wl="' + r._row + '">' + escHtml(r.manufacturer || '—') + '</button>' +
+            (r.attention ? '<span class="risk-flag" title="' + escAttr(t('wlAttentionBanner')) + '">' + icon('alertTriangle', 14) + '</span>' : '');
+        } else if (key === 'statusBucket') {
+          cell = wishlistStatusChip(r.statusBucket);
+        } else {
+          cell = escHtml(r[key] || '—');
+        }
+        html += '<td data-label="' + escAttr(label) + '">' + cell + '</td>';
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+
+  root.innerHTML = html;
+  wireWishlistInteractions(filtered);
+  drawPieChart('chart-wl-status', 'wlStatus', agg.statusChartCounts);
+  drawBarChart('chart-wl-year', 'wlYear', agg.yearCounts, 0);
+  drawPieChart('chart-wl-region', 'wlRegion', agg.regionCounts);
+  drawBarChart('chart-wl-site', 'wlSite', agg.siteCounts, 2);
+}
+
+function wishlistColLabel(key) {
+  var map = {
+    wlYear: 'colWlYear', category: 'colCategory', manufacturer: 'colManufacturer', model: 'colModel',
+    vsRegion: 'colVsRegion', site: 'colSite', launchPlan: 'colLaunchPlan', statusBucket: 'colStatus'
+  };
+  return t(map[key] || key);
+}
+
+function applyWishlistFilters() {
+  var rows = AppState.wishlist.rows || [];
+  var f = AppState.wishlist.filters;
+  var terms = parseSearchTerms(AppState.wishlist.search);
+  var out = rows.filter(function (r) {
+    for (var key in f) {
+      if (f[key] && f[key].length && f[key].indexOf(String(r[key])) === -1) return false;
+    }
+    if (!wishlistRowMatchesTerms(r, terms)) return false;
+    return true;
+  });
+  var s = AppState.wishlist.sort;
+  if (s.key) {
+    out.sort(function (a, b) {
+      var av = a[s.key], bv = b[s.key];
+      var an = parseFloat(av), bn = parseFloat(bv);
+      var cmp = (!isNaN(an) && !isNaN(bn)) ? (an - bn) : String(av || '').localeCompare(String(bv || ''));
+      return cmp * s.dir;
+    });
+  }
+  return out;
+}
+
+function renderWishlistFilterBar() {
+  var html = '<div class="filter-bar">';
+  WISHLIST_FILTERABLE.forEach(function (key) {
+    var labelKey = key === 'wlYear' ? 'filterWlYear' : key === 'category' ? 'filterCategory' :
+      key === 'vsRegion' ? 'filterVsRegion' : key === 'site' ? 'filterSite' : 'filterStatus';
+    var active = AppState.wishlist.filters[key] && AppState.wishlist.filters[key].length;
+    html += '<div class="filter-group"><span class="filter-label">' + t(labelKey) + '</span>' +
+      '<div class="fdr-wrap"><button class="fdr-btn' + (active ? ' fdr-active' : '') + '" data-wl-fdr="' + key + '">' +
+      icon('filter', 14) + t(labelKey) + (active ? ' (' + AppState.wishlist.filters[key].length + ')' : '') + '</button>' +
+      '<div class="fdr-drop" id="wl-fdr-' + key + '"></div></div></div>';
+  });
+  html += '<div class="filter-group filter-search"><span class="filter-label">' + icon('search', 12) + '</span>' +
+    '<input class="fdr-search" id="wl-search" type="search" placeholder="' + escAttr(t('wlSearchPlaceholder')) + '" value="' + escAttr(AppState.wishlist.search) + '" aria-label="' + escAttr(t('wlSearchPlaceholder')) + '"></div>';
+  html += '</div>';
+  return html;
+}
+
+function renderWishlistActiveChips() {
+  var f = AppState.wishlist.filters;
+  var chips = [];
+  Object.keys(f).forEach(function (key) {
+    (f[key] || []).forEach(function (v) { chips.push({ key: key, val: v }); });
+  });
+  if (!chips.length) return '';
+  var html = '<div class="active-filters">';
+  chips.forEach(function (c) {
+    var label = (c.key === 'statusBucket') ? t((WISHLIST_STATUS_META[c.val] || WISHLIST_STATUS_META.Other).labelKey) : c.val;
+    html += '<span class="filter-chip">' + escHtml(label) +
+      '<button class="filter-chip-remove" data-wl-chip-key="' + c.key + '" data-wl-chip-val="' + escAttr(c.val) + '" aria-label="' + t('clearFilters') + '">' + icon('x', 11) + '</button></span>';
+  });
+  html += '<button class="btn btn-text" style="font-size:var(--fs-xs);padding:2px 6px;" onclick="clearWishlistFilters()">' + t('clearFilters') + '</button>';
+  html += '</div>';
+  return html;
+}
+
+function clearWishlistFilters() {
+  AppState.wishlist.filters = {};
+  AppState.wishlist.search = '';
+  renderWishlist();
+}
+
+function wireWishlistInteractions(filteredRows) {
+  document.querySelectorAll('[data-wl-sort]').forEach(function (th) {
+    th.addEventListener('click', function () {
+      var key = th.getAttribute('data-wl-sort');
+      var s = AppState.wishlist.sort;
+      s.dir = (s.key === key) ? -s.dir : 1;
+      s.key = key;
+      renderWishlist();
+    });
+  });
+  document.querySelectorAll('[data-open-wl]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      openWishlistDrawer(Number(btn.getAttribute('data-open-wl')), filteredRows.map(function (r) { return r._row; }));
+    });
+  });
+  document.querySelectorAll('[data-wl-chip-key]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var key = btn.getAttribute('data-wl-chip-key'), val = btn.getAttribute('data-wl-chip-val');
+      var arr = AppState.wishlist.filters[key] || [];
+      AppState.wishlist.filters[key] = arr.filter(function (v) { return v !== val; });
+      renderWishlist();
+    });
+  });
+  document.querySelectorAll('[data-wl-fdr]').forEach(function (btn) {
+    btn.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      toggleWishlistFilterDrop(btn.getAttribute('data-wl-fdr'), btn);
+    });
+  });
+  var search = document.getElementById('wl-search');
+  if (search) {
+    search.addEventListener('input', function () {
+      AppState.wishlist.search = search.value;
+      var pos = search.selectionStart;
+      renderWishlist();
+      var again = document.getElementById('wl-search');
+      if (again) { again.focus(); again.setSelectionRange(pos, pos); }
+    });
+  }
+}
+
+function toggleWishlistFilterDrop(key, btnEl) {
+  var isOpen = btnEl.classList.contains('fdr-active-open');
+  closeAllWishlistFilterDrops();
+  if (isOpen) return;
+  var drop = document.getElementById('wl-fdr-' + key);
+  var rect = btnEl.getBoundingClientRect();
+  drop.style.left = rect.left + 'px';
+  drop.style.top = (rect.bottom + 4) + 'px';
+  drop.innerHTML = renderWishlistFilterDropList(key);
+  drop.classList.add('fdr-open');
+  btnEl.classList.add('fdr-active-open');
+  wireWishlistFilterDropList(key, drop);
+}
+
+function closeAllWishlistFilterDrops() {
+  document.querySelectorAll('#view-wishlist .fdr-drop').forEach(function (d) { d.classList.remove('fdr-open'); });
+  document.querySelectorAll('#view-wishlist .fdr-btn').forEach(function (b) { b.classList.remove('fdr-active-open'); });
+}
+
+function uniqueWishlistValuesFor(key) {
+  var rows = AppState.wishlist.rows || [];
+  var seen = {}; var out = [];
+  rows.forEach(function (r) {
+    var v = String(r[key] == null ? '' : r[key]);
+    if (v && !seen[v]) { seen[v] = true; out.push(v); }
+  });
+  out.sort();
+  return out;
+}
+
+function renderWishlistFilterDropList(key) {
+  var values = uniqueWishlistValuesFor(key);
+  var selected = AppState.wishlist.filters[key] || [];
+  var isStatus = (key === 'statusBucket');
+  var html = '<div class="fdr-searchwrap"><input class="fdr-search" type="search" placeholder="' + t('searchPlaceholder') + '" data-wl-fdr-search="' + key + '"></div><div class="fdr-list">';
+  values.forEach(function (v) {
+    var label = isStatus ? t((WISHLIST_STATUS_META[v] || WISHLIST_STATUS_META.Other).labelKey) : v;
+    var id = 'wl-fdr-' + key + '-' + btoa(unescape(encodeURIComponent(v))).replace(/[^a-zA-Z0-9]/g, '');
+    html += '<label class="fdr-item" data-wl-fdr-row="' + escAttr(v.toLowerCase()) + '"><input type="checkbox" id="' + id + '" value="' + escAttr(v) + '"' + (selected.indexOf(v) > -1 ? ' checked' : '') + '> ' + escHtml(label) + '</label>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function wireWishlistFilterDropList(key, drop) {
+  drop.querySelectorAll('input[type=checkbox]').forEach(function (cb) {
+    cb.addEventListener('change', function () {
+      var arr = AppState.wishlist.filters[key] || [];
+      if (cb.checked) arr.push(cb.value); else arr = arr.filter(function (v) { return v !== cb.value; });
+      AppState.wishlist.filters[key] = arr;
+      renderWishlist();
+      var btn = document.querySelector('[data-wl-fdr="' + key + '"]');
+      if (btn) toggleWishlistFilterDrop(key, btn);
+    });
+  });
+  var searchInput = drop.querySelector('[data-wl-fdr-search]');
+  if (searchInput) {
+    searchInput.addEventListener('input', function () {
+      var q = _norm(searchInput.value);
+      drop.querySelectorAll('[data-wl-fdr-row]').forEach(function (row) {
+        row.style.display = _norm(row.getAttribute('data-wl-fdr-row')).indexOf(q) > -1 ? '' : 'none';
+      });
+    });
+  }
+}
+
+// --------------------------------------------------------------------------
+// Wishlist Detay Paneli — salt okunur (InfoModal deseni, detay-popup.md).
+// Ayrı sunucu çağrısı YOK: AppState.wishlist.rows zaten tüm alanları taşıyor.
+// --------------------------------------------------------------------------
+
+function openWishlistDrawer(rowId, listRows) {
+  AppState.wishlistDrawer.open = true;
+  AppState.wishlistDrawer.row = rowId;
+  AppState.wishlistDrawer.listRows = listRows || [];
+  document.getElementById('wishlist-drawer-scrim').classList.add('open');
+  document.getElementById('wishlist-drawer').classList.add('open');
+  renderWishlistDrawer();
+}
+
+function closeWishlistDrawer() {
+  AppState.wishlistDrawer.open = false;
+  document.getElementById('wishlist-drawer-scrim').classList.remove('open');
+  document.getElementById('wishlist-drawer').classList.remove('open');
+}
+
+function wishlistRecordByRow_(rowId) {
+  var rows = AppState.wishlist.rows || [];
+  for (var i = 0; i < rows.length; i++) if (rows[i]._row === rowId) return rows[i];
+  return null;
+}
+
+function renderWishlistDrawer() {
+  var rec = wishlistRecordByRow_(AppState.wishlistDrawer.row);
+  if (!rec) return;
+  document.getElementById('wishlist-drawer-hd-title').textContent = t('wlDrawerTitle') + ' — ' + (rec.manufacturer || rec.projectCode || rec._row);
+
+  var listRows = AppState.wishlistDrawer.listRows;
+  var pos = listRows.indexOf(rec._row);
+  var navHtml;
+  if (pos < 0) {
+    navHtml = '<span class="drawer-nav-pos">' + t('drawerOpenedElsewhere') + '</span>';
+  } else {
+    navHtml =
+      '<button data-wl-step="-1" ' + (pos <= 0 ? 'disabled' : '') + ' aria-label="' + t('prev') + '">' + icon('chevronUp', 16) + '</button>' +
+      '<span class="drawer-nav-pos">' + (pos + 1) + ' / ' + listRows.length + '</span>' +
+      '<button data-wl-step="1" ' + (pos >= listRows.length - 1 ? 'disabled' : '') + ' aria-label="' + t('next') + '">' + icon('chevronDown', 16) + '</button>';
+  }
+  document.getElementById('wishlist-drawer-nav').innerHTML = navHtml;
+  document.querySelectorAll('#wishlist-drawer-nav [data-wl-step]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var newPos = pos + parseInt(b.getAttribute('data-wl-step'), 10);
+      var newRow = listRows[newPos];
+      if (newRow != null) { AppState.wishlistDrawer.row = newRow; renderWishlistDrawer(); }
+    });
+  });
+
+  var body = document.getElementById('wishlist-drawer-body');
+  var html = '';
+
+  if (rec.attention) {
+    html += '<div class="risk-banner st-warn" style="background:var(--st-warn-bg);color:var(--st-warn-fg);">' +
+      icon('alertTriangle', 16) + t('wlAttentionBanner') + '</div>';
+  }
+
+  html += '<div class="drawer-sec">' + t('drawerSecIdentity') + '</div>';
+  ['manufacturer', 'model', 'category', 'productRange', 'dia', 'vsRegion', 'projectCode', 'vsPartNumber', 'prio']
+    .forEach(function (key) { html += wishlistPropRow(key, rec); });
+
+  html += '<div class="drawer-sec">' + t('drawerSecCommercial') + '</div>';
+  ['site', 'technology', 'launchPlan', 'plannedMonth', 'competitorBrand', 'competitorProduct',
+    'priceEurope', 'priceTmeao', 'priceAmericas', 'orderIntake', 'totalVsPotential', 'samplesAvailability']
+    .forEach(function (key) { html += wishlistPropRow(key, rec); });
+
+  html += '<div class="drawer-sec">' + t('wlSecStatus') + '</div>';
+  html += '<div class="prop-row"><span class="prop-icon">' + icon('checkCircle', 18) + '</span>' +
+    '<span class="prop-label">' + t('colStatus') + '</span><span class="prop-value-wrap">' + wishlistStatusChip(rec.statusBucket) + '</span></div>';
+  ['statusRaw', 'action', 'reasonCancelled', 'notes'].forEach(function (key) {
+    var field = key === 'statusRaw' ? 'projectStatusRaw' : key;
+    html += wishlistPropRow(key, rec, field);
+  });
+
+  if (AppState.wishlist.sourceUrl) {
+    html += '<div style="margin-top:var(--space-lg);"><a class="btn btn-outlined" href="' + escAttr(AppState.wishlist.sourceUrl) +
+      '" target="_blank" rel="noopener">' + icon('search', 14) + '<span class="btn-label">' + t('wlOpenSheet') + '</span></a></div>';
+  }
+
+  body.innerHTML = html;
+}
+
+// key: T dict'teki 'field'+Key alan adı; field: rec üzerindeki gerçek alan
+// adı farklıysa (ör. statusRaw -> projectStatusRaw) ayrıca verilir.
+function wishlistPropRow(key, rec, field) {
+  var fieldName = field || key;
+  var label = t('field' + key.charAt(0).toUpperCase() + key.slice(1));
+  var raw = rec[fieldName];
+  var isPrice = (fieldName === 'priceEurope' || fieldName === 'priceTmeao' || fieldName === 'priceAmericas');
+  var numKey = fieldName + 'Num';
+  var displayVal;
+  if (isPrice && rec[numKey] != null) displayVal = fmtEur(rec[numKey]);
+  else displayVal = (raw === '' || raw == null) ? '—' : escHtml(raw);
+  return '<div class="prop-row"><span class="prop-icon">' + icon('list', 18) + '</span>' +
+    '<span class="prop-label">' + label + '</span>' +
+    '<div class="prop-value-wrap"><div class="prop-static">' + displayVal + '</div></div></div>';
 }
 
 // --------------------------------------------------------------------------
