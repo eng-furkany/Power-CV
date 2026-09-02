@@ -62,7 +62,7 @@ var T = {
   showList: 'Show Parts List', hideList: 'Hide Parts List',
   globalSearchLabel: 'Global Search',
   globalSearchPlaceholder: 'Search P/N, Plant, Product, Project Type, Status Planned/Actual — comma-separate for multiple values',
-  colPlanned: 'Planned',
+  colPlanned: 'Planned', colActual: 'Actual',
   riskLocalSearchPlaceholder: 'Search this table…',
   riskTableTitle: 'Risk / Delay Table',
   riskTableEmptyTitle: 'No risk', riskTableEmptySub: 'No part currently carries a risk/delay flag.',
@@ -894,7 +894,11 @@ function refreshChartsForTheme() {
 // atlandı — mvp-akisi.md'nin orantılı mühendislik ilkesi.
 // --------------------------------------------------------------------------
 
-var VISIBLE_COLS = ['plant', 'pn', 'product', 'volume', 'oi', 'status', 'statusPlanned', 'projectStatus'];
+// Kullanıcı talebi: "launch planned ile launch actual gibisinden gerçekleşen
+// zamanın da takip edilebileceği" — yeni bir kolon açmak yerine mevcut M
+// (Status Planned) ve N (Status Actual) alanları yan yana gösterilir, ikisi
+// birlikte planlanan/gerçekleşen zamanlamayı listede tek bakışta verir.
+var VISIBLE_COLS = ['plant', 'pn', 'product', 'volume', 'oi', 'status', 'statusPlanned', 'statusActual', 'projectStatus'];
 // Kullanıcı talebi: Parça Listesi'ne yıl filtresi de eklendi (Plant zaten
 // vardı) — planYear, Dashboard'un yıl segmentiyle aynı kaynaktan gelir.
 var FILTERABLE = ['planYear', 'plant', 'product', 'statusCategory', 'projectStatus'];
@@ -979,6 +983,8 @@ function renderListe() {
           cell = riskChip(r.riskLevel, r.statusCategory === 'Launched');
         } else if (key === 'statusPlanned') {
           cell = escHtml(lexLabel(r.statusPlanned));
+        } else if (key === 'statusActual') {
+          cell = escHtml(lexLabel(r.statusActual));
         } else if (numeric) {
           cell = fmtNum(r[key]);
         } else {
@@ -1018,7 +1024,7 @@ function unitFor(key) {
 }
 
 function colLabel(key) {
-  var fallbackMap = { plant: 'colPlant', pn: 'colPn', product: 'colProduct', projectType: 'colProjectType', volume: 'colVolume', oi: 'colOi', status: 'colStatus', statusPlanned: 'colPlanned', launchSheet: 'colLaunch', projectStatus: 'colProjectStatus', comment: 'colComment' };
+  var fallbackMap = { plant: 'colPlant', pn: 'colPn', product: 'colProduct', projectType: 'colProjectType', volume: 'colVolume', oi: 'colOi', status: 'colStatus', statusPlanned: 'colPlanned', statusActual: 'colActual', launchSheet: 'colLaunch', projectStatus: 'colProjectStatus', comment: 'colComment' };
   if (key === 'status') return t('colStatus'); // risk rozeti — türetilmiş, gerçek bir Sheet kolonu değil
   return sheetLabelFor(key, fallbackMap[key] || key);
 }
