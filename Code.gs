@@ -160,16 +160,36 @@ function _columnsWithHeaders_() {
   });
 }
 
+// Kullanıcı bulgusu (2026-09-01): "Coverage zaten yüzdesel veriydi, sen
+// tekrar mı yüzdesini aldın?" — Google Sheets'te bir hücre "%" biçimiyle
+// (ör. hücrede "45%" görünür) biçimlendirilmişse, Apps Script getValue()
+// bunu 0.45 (ham kesir) olarak döner, 45 değil. Bunu bilmeden 0.45'e '%'
+// eklersek "0.45%" gibi anlamsız/neredeyse-sıfır bir değer görünür. Bu
+// yüzden 'percent' tipindeki her kolonun GERÇEK hücre biçimini kontrol
+// edip, biçim yüzdeyse ×100 ile ölçekliyoruz — hücre düz sayı biçimindeyse
+// (kullanıcı zaten 45 diye girmişse) dokunmuyoruz.
+function _isPercentFormat_(fmt) { return /%/.test(String(fmt || '')); }
+
 function _readAllRows_() {
   var sh = _sheet_();
   var last = sh.getLastRow();
   if (last < 2) return [];
   var values = sh.getRange(2, 1, last - 1, MAX_COL).getValues();
+  var percentCols = COLUMN_MAP.filter(function (c) { return c.type === 'percent'; });
+  var percentIsFmt = {}; // key -> [isPercentFormat, ...] (satır başına)
+  percentCols.forEach(function (c) {
+    var fmts = sh.getRange(2, c.col, last - 1, 1).getNumberFormats();
+    percentIsFmt[c.key] = fmts.map(function (row) { return _isPercentFormat_(row[0]); });
+  });
   var out = [];
   for (var i = 0; i < values.length; i++) {
     // A (Plant) ve D (P/N) ikisi de boşsa bu satır boş kabul edilir, atlanır.
     if (values[i][0] === '' && values[i][3] === '') continue;
-    out.push(rowToRecord_(values[i], i + 2));
+    var rec = rowToRecord_(values[i], i + 2);
+    percentCols.forEach(function (c) {
+      if (typeof rec[c.key] === 'number' && percentIsFmt[c.key][i]) rec[c.key] = rec[c.key] * 100;
+    });
+    out.push(rec);
   }
   return out;
 }
@@ -235,29 +255,38 @@ function updateParcaField(pn, field, value) {
     if (targetRow === -1) return { error: 'Record not found: ' + pn };
 
     var cell = sh.getRange(targetRow, col.col);
-    var oldValue = cell.getValue();
+    // bkz. _isPercentFormat_ — hücre "%" biçimliyse ham değer 0-1 arası bir
+    // kesirdir, istemciyle her zaman 0-100 ölçeğinde konuşuyoruz.
+    var isPercentFmt = col.type === 'percent' && _isPercentFormat_(cell.getNumberFormat());
+    var oldValueRaw = cell.getValue();
+    var oldValue = (isPercentFmt && typeof oldValueRaw === 'number') ? oldValueRaw * 100 : oldValueRaw;
 
-    var newValue = value;
+    var newValue = value;   // istemciye dönecek, "görünen" (percent ise 0-100) ölçek
+    var sheetValue = value; // Sheet hücresine gerçekten yazılacak ham değer
     if (col.type === 'number' || col.type === 'percent') {
       newValue = (value === '' || value === null || typeof value === 'undefined') ? '' : Number(value);
       if (newValue !== '' && isNaN(newValue)) return { error: 'Please enter a numeric value.' };
+      sheetValue = (newValue !== '' && isPercentFmt) ? newValue / 100 : newValue;
     } else if (col.type === 'date') {
       newValue = value ? new Date(value) : '';
+      sheetValue = newValue;
     } else {
       newValue = (value === null || typeof value === 'undefined') ? '' : String(value);
+      sheetValue = newValue;
     }
 
-    cell.setValue(newValue);
+    cell.setValue(sheetValue);
 
     // Sağlama (muhendislik-standartlari.md madde 2): "başarılı" demeden önce
-    // gerçekten yazıldığını kanıtla — geri okuyup karşılaştır.
+    // gerçekten yazıldığını kanıtla — geri okuyup karşılaştır (Sheet'e
+    // YAZILAN ham değerle, istemciye dönen görünen değerle değil).
     var verify = cell.getValue();
     var wrote;
     if (col.type === 'date') {
-      wrote = (newValue === '') ? (verify === '') :
-        (verify instanceof Date && newValue instanceof Date && verify.getTime() === newValue.getTime());
+      wrote = (sheetValue === '') ? (verify === '') :
+        (verify instanceof Date && sheetValue instanceof Date && verify.getTime() === sheetValue.getTime());
     } else {
-      wrote = (String(verify) === String(newValue));
+      wrote = (String(verify) === String(sheetValue));
     }
     if (!wrote) return { error: 'Write could not be verified — please refresh the page and try again.' };
 

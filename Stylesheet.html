@@ -252,6 +252,8 @@ img { max-width: 100%; }
    ========================================================================== */
 
 .filter-bar { display: flex; flex-wrap: wrap; gap: var(--space-sm); align-items: center; padding: var(--space-md) var(--space-lg); background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: var(--space-md); }
+.unknown-year-note { display: flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--st-warn-fg); background: var(--st-warn-bg); border-radius: var(--radius-md); padding: 8px 12px; margin-bottom: var(--space-md); }
+.unknown-year-note svg { width: 14px; height: 14px; stroke: currentColor; fill: none; flex: none; }
 .filter-group { display: flex; flex-direction: column; gap: 3px; }
 .filter-label { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; }
 .filter-search { min-width: 180px; flex: 1; }
@@ -399,6 +401,9 @@ img { max-width: 100%; }
    imleci, üzerine gelince (title tooltip) yorumun tamamı görünür. */
 .comment-flag { display: inline-flex; color: var(--valeo-blue-text); margin-left: 5px; vertical-align: -3px; cursor: help; }
 .comment-flag svg { width: 16px; height: 16px; stroke: currentColor; fill: none; }
+/* Risk/Delay tablosunda yorumun kendi kolonu — kısaltılmış (ellipsis),
+   tam metin title tooltip'inde (kullanıcı bulgusu: ikon fark edilmiyordu). */
+.comment-cell { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: help; color: var(--text); }
 
 .milestone-list { display: flex; flex-direction: column; gap: 0; }
 .risk-banner {

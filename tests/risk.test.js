@@ -88,6 +88,21 @@ assertEqual(
 );
 assertEqual(sandbox.computePlanYear_({ statusPlanned: 'TBD', statusActual: '' }), null, 'planYear: ne çeyrek ne tarih -> null');
 
+// --- 2026-09-01 düzeltmesi: gerçek Sheet verisinde biçim ufak farklı olursa
+// (fazladan boşluk, "-" ayracı, küçük harf) satır sessizce hiçbir yıla
+// atanamayıp Total Parts/Launched/Coverage gibi TÜM yıl toplamlarından
+// düşüyordu — kullanıcı bulgusu ("2026'da launched projeler var ama KPI'lar
+// boş"). parseQuarter_ artık bunlara tolerantlı.
+assertEqual(sandbox.computePlanYear_({ statusPlanned: 'Q1 / 2026', statusActual: '' }), 2026, 'planYear: fazladan boşluklu "Q1 / 2026" -> 2026 (eskiden null dönerdi)');
+assertEqual(sandbox.computePlanYear_({ statusPlanned: 'q1-2026', statusActual: '' }), 2026, 'planYear: küçük harf + "-" ayraçlı "q1-2026" -> 2026 (eskiden null dönerdi)');
+// launchSheet hücresi tarih olarak değil düz metin olarak girilmişse de
+// (Sheet'te metin biçimli bir hücre) artık yıl/çeyrek türetilebiliyor.
+assertEqual(
+  sandbox.computePlanYear_({ statusPlanned: 'Launched', statusActual: 'Launched', launchSheet: '2026-06-01' }),
+  2026,
+  'planYear: launchSheet metin (Date değil) olarak gelirse de okunur'
+);
+
 if (failures > 0) {
   console.error('\n' + failures + ' test başarısız.');
   process.exitCode = 1;

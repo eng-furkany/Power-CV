@@ -12,11 +12,30 @@
  * artık YOK — bkz. Code.gs COLUMN_MAP (statusPlanned/statusActual).
  */
 
-// "Q1/2026" gibi bir çeyrek string'ini {q,y} olarak ayrıştırır, aksi halde null.
+// "Q1/2026" gibi bir çeyrek string'ini {q,y} olarak ayrıştırır, aksi halde
+// null. 2026-09-01 düzeltmesi (kullanıcı bulgusu: "2026'da launched
+// projeler var ama Launched/Coverage KPI'ları boş görünüyor"): önceki
+// regex tam olarak "Q1/2026" biçimini bekliyordu — Sheet'te "Q1 / 2026",
+// "q1-2026" gibi ufak biçim farkları olursa sessizce null dönüp o satırı
+// HİÇBİR yıla atayamıyordu (Total Parts/Volume/Launched/Coverage gibi
+// TÜM yıl-bazlı toplamlardan tamamen düşüyordu). Artık boşluk, "/" veya
+// "-" ayracı ve büyük/küçük harf farkı toleranslı.
 function parseQuarter_(s) {
-  var m = /^Q([1-4])\/(\d{4})$/.exec(String(s == null ? '' : s).trim());
+  var m = /^Q\s*([1-4])\s*[\/\-]\s*(\d{4})$/i.exec(String(s == null ? '' : s).trim());
   if (!m) return null;
   return { q: parseInt(m[1], 10), y: parseInt(m[2], 10) };
+}
+
+// launchSheet alanı gerçek bir Date nesnesi olarak gelebildiği gibi (Sheet
+// hücresi tarih biçimliyse), metin olarak da gelebilir (hücre düz metin
+// biçimliyse) — ikisini de kabul eder, aksi halde null.
+function _asDate_(v) {
+  if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
+  if (typeof v === 'string' && v.trim()) {
+    var d = new Date(v.trim());
+    if (!isNaN(d.getTime())) return d;
+  }
+  return null;
 }
 
 // Verilen çeyrek (q,y) "now" anına göre geçmişte mi?
@@ -71,8 +90,8 @@ function computePlanYear_(record) {
   if (qp) return qp.y;
   var qa = parseQuarter_(record.statusActual);
   if (qa) return qa.y;
-  var launch = record.launchSheet;
-  if (launch instanceof Date && !isNaN(launch.getTime())) return launch.getFullYear();
+  var launch = _asDate_(record.launchSheet);
+  if (launch) return launch.getFullYear();
   return null;
 }
 
@@ -83,7 +102,7 @@ function computePlanQuarter_(record) {
   if (qp) return qp.q;
   var qa = parseQuarter_(record.statusActual);
   if (qa) return qa.q;
-  var launch = record.launchSheet;
-  if (launch instanceof Date && !isNaN(launch.getTime())) return Math.floor(launch.getMonth() / 3) + 1;
+  var launch = _asDate_(record.launchSheet);
+  if (launch) return Math.floor(launch.getMonth() / 3) + 1;
   return null;
 }
