@@ -398,14 +398,18 @@ function computeDashboardAggregates(rows) {
 
   // Coverage + ortalaması — kullanıcı talebi: grafiğin İÇİNDE değil, KPI
   // şeridinde yüzde olarak gösterilsin (önceki turda grafiğe eklenen küçük
-  // işaretçi kaldırıldı, bkz. drawOiByTypeChart).
+  // işaretçi kaldırıldı).
   var covAvg = covCount ? (covSum / covCount) : null;
 
   return {
     kpis: { totalParts: rows.length, totalVolume: totalVolume, totalEur: totalEur, launchedCount: launchedCount, riskCount: riskCount, covAvg: covAvg },
     plantCounts: bucketTop(plantCounts, 8),
     volByType: bucketTop(volByType, 8),
-    oiByType: oiByType,
+    // Kullanıcı talebi (2026-09-02): "Order Intake by Project Type" de
+    // Volume by Project Type gibi pasta grafiğe çevrildi — aynı desen
+    // (bucketTop + drawPieChart), en büyük 8 tür dışındakiler "Other"da
+    // toplanır.
+    oiByType: bucketTop(oiByType, 8),
     groupedTF: buildPivot(tfCells, tfRowTotals, tfColTotals),
     riskRows: riskRows.slice(0, 50)
   };
@@ -621,7 +625,7 @@ function renderDashboard() {
   wireDashboardInteractions(riskFiltered);
   drawPieChart('chart-plant', 'plant', agg.plantCounts);
   drawPieChart('chart-volbytype', 'volbytype', agg.volByType);
-  drawOiByTypeChart(agg.oiByType);
+  drawPieChart('chart-oibytype', 'oibytype', agg.oiByType);
   if (qYear !== 'all') drawQuarterlyChart(qData, !oiExpanded);
 }
 
@@ -768,59 +772,6 @@ function drawPieChart(canvasId, chartKey, counts) {
 }
 
 
-// "Order Intake by Project Type" — kullanıcı bulgusu: bir kategorinin
-// (ör. çoktan Launched olmuş bir Project Type) OI'si diğerlerinden çok
-// büyük olunca yanal (değer) ekseni tek o kategoriye göre ölçekleniyor,
-// geri kalan kategoriler görünmez ince çizgilere dönüşüyordu. Çözüm:
-// logaritmik x ekseni (en büyük değeri "kısaltır", küçük değerleri de
-// görünür kılar) + her çubuğun ucunda gerçek değeri yazan bir etiket
-// (ölçek sıkıştırılsa da veri normalde okunabilir kalsın — kullanıcı
-// talebi). Coverage + burada değil, KPI şeridinde ayrı bir kart olarak
-// gösteriliyor (kullanıcı talebi: "grafiğin içerisinde gösterme").
-function drawOiByTypeChart(oiByType) {
-  var canvas = document.getElementById('chart-oibytype');
-  if (!canvas) return;
-  var wrap = canvas.closest('.chart-canvas-wrap');
-  var entries = Object.keys(oiByType || {}).map(function (k) { return [k, oiByType[k]]; });
-  entries.sort(function (a, b) { return b[1] - a[1]; });
-  if (!entries.length) { showChartNoData(wrap, canvas); return; }
-  showCanvas(wrap, canvas);
-  var labels = entries.map(function (e) { return e[0]; });
-  var values = entries.map(function (e) { return e[1]; });
-  // Logaritmik eksen 0'ı çizemez — gerçek değer 0 olan bir kategori varsa
-  // yalnız ÇİZİM için küçük bir taban değere yuvarlanır, etikette (aşağıda
-  // `values[ctx.dataIndex]` ile) gerçek değer (0) yazılmaya devam eder.
-  var plotValues = values.map(function (v) { return v > 0 ? v : 0.01; });
-
-  if (AppState.charts.oibytype) AppState.charts.oibytype.destroy();
-  AppState.charts.oibytype = new Chart(canvas.getContext('2d'), {
-    type: 'bar',
-    plugins: (window.ChartDataLabels ? [window.ChartDataLabels] : []),
-    data: { labels: labels, datasets: [{
-      data: plotValues, backgroundColor: chartPalette()[1],
-      datalabels: {
-        color: cssVar('--muted'), anchor: 'end', align: 'right', font: { size: 9 },
-        formatter: function (v, ctx) { return fmtNum(values[ctx.dataIndex]); }
-      }
-    }] },
-    options: {
-      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: function (ctx) { return fmtNum(values[ctx.dataIndex]); } } }
-      },
-      scales: {
-        x: { type: 'logarithmic', ticks: { color: cssVar('--muted'), font: { size: 9 }, callback: function (v) { return fmtNum(v); } }, grid: { color: 'rgba(148,163,184,0.15)' } },
-        y: { ticks: { color: cssVar('--muted'), font: { size: 9 } }, grid: { display: false } }
-      },
-      onClick: function (evt, els) {
-        if (!els.length) return;
-        applyChartClickFilter(labels[els[0].index]);
-      }
-    }
-  });
-}
-
 // Çeyreklik kümülatif OI çizgisi — referans "POWER OFF-ROAD & BUS" raporuyla
 // aynı mantık (kullanıcı talebi, 2026-09-02): Plan (B1, K kolonu) TÜM YIL
 // için çizilir — yılın planı baştan bilinir, gelecek çeyrekler için de
@@ -904,7 +855,7 @@ function refreshChartsForTheme() {
   if (!agg) return;
   if (AppState.charts.plant) drawPieChart('chart-plant', 'plant', agg.plantCounts);
   if (AppState.charts.volbytype) drawPieChart('chart-volbytype', 'volbytype', agg.volByType);
-  if (AppState.charts.oibytype) drawOiByTypeChart(agg.oiByType);
+  if (AppState.charts.oibytype) drawPieChart('chart-oibytype', 'oibytype', agg.oiByType);
   if (AppState.charts.quarterly) drawQuarterlyChart(AppState.dashboard.qData, !AppState.dashboard.oiExpanded);
 }
 
