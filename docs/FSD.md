@@ -4,10 +4,13 @@
 
 - Header: sabit, `--valeo-blue` zemin, solda logo, ortada sayfa başlığı, sağda koyu-mod
   düğmesi + dil düğmesi (TR/EN).
-- Sol: masaüstünde statik ikon-sidebar (Dashboard, Parça Listesi — 2 öğe, `sidebar.md`'nin
-  "az sayfalı basit araç" istisnası); ≤768px'te sidebar gizlenir, ekran altında bottom-nav
-  (aynı 2 öğe) belirir.
-- Detay Paneli her iki ekrandan da açılabilen, sağdan giren ortak bir drawer.
+- Sol: masaüstünde statik ikon-sidebar (Dashboard, Parça Listesi, Wishlist — 3 öğe,
+  `sidebar.md`'nin "az sayfalı basit araç" istisnası); ≤768px'te sidebar gizlenir, ekran
+  altında bottom-nav (aynı 3 öğe) belirir.
+- Detay Paneli, Dashboard ve Parça Listesi'nin ortak paylaştığı, sağdan giren düzenlenebilir
+  bir drawer. **Wishlist Detay Paneli AYRI bir bileşen** — salt-okunur (InfoModal deseni,
+  `detay-popup.md`), kendi state'ini (`AppState.wishlistDrawer`) ve kendi DOM'unu
+  (`#wishlist-drawer`) taşır; Detay Paneli'nin düzenleme/kaydetme mantığına dokunmaz.
 
 ## Ekran: Dashboard (varsayılan açılış)
 
@@ -49,6 +52,53 @@
 - Durum sütunu Durum Rozeti (Status chip) ile gösterilir; risk/gecikme kayıtlarda ek bir
   uyarı ikonu (`alert-triangle`, Lucide).
 
+## Ekran: Wishlist
+
+- Ayrı bir Google Sheet'ten okur ("Live Wishlist - Clutch CV AMEAO + Europe", bkz. `TSD.md`
+  "Wishlist" bölümü) — Dashboard/Parça Listesi'nin `Sheet1`'iyle karıştırılmaz.
+- Salt-okunur (Dashboard'la aynı "Sinoptik Görünüm" kuralı). Tek sayfada KPI şeridi + 4 grafik
+  + filtrelenebilir tam tablo birleşik — ayrı bir "genel bakış"/"tüm kayıtlar" ekran ikilisine
+  bölünmedi (300 satırın altındaki küçük tek-kaynaklı bir ekran, `mvp-akisi.md` orantılı
+  mühendislik ilkesi). Detay: `docs/layout-wishlist.md`.
+- KPI şeridi: Toplam Proje · Launched · CA Aşamasında · Geliştirmede · İptal/Tahsis Edilmedi ·
+  **Dikkat** (Launch Plan hedeflenen çeyreği geçmiş + proje hâlâ Launched değil).
+- 4 grafik (`PALETTE`'ten türetilmiş, doughnut/bar karışık): Durum Dağılımı · Yıla Göre Proje
+  Sayısı · Bölge Dağılımı · Site Dağılımı. Grafiklerin `onClick` filtreye bağlanması bu turda
+  YOK (Dashboard'daki gibi tek bir genel arama kutusuna beslenecek ayrı bir üst filtre satırı
+  yok — filtre barının kendi `FilterDrop`'ları zaten aynı işi görüyor).
+- Filtre barı: WL Year / Kategori / VS Region / Site / Durum için `FilterDrop` çoklu seçim +
+  serbest arama kutusu (Proje Kodu, Üretici, Model, VS Part Number, Teknoloji, Notlar üzerinde,
+  Türkçe karakter-duyarsız). Aktif filtre chip'leri, "Filtreyi Temizle".
+- Tablo: WL Year, Kategori, Üretici, Model, VS Region, Site, Launch Plan, Durum (rozet) —
+  görünür varsayılan kolonlar. **Üretici hücresine tıklamak (veya Enter/Space) Wishlist Detay
+  Panelini açar** — gerçek `<button>` üzerinden (madde 5). ≤768px: `mobileCards()` ile karta
+  döner.
+- Dikkat rozetli satırlarda Üretici hücresinin yanında bir uyarı ikonu (Parça Listesi'ndeki
+  risk bayrağıyla aynı görsel dil).
+- Veri yüklenemezse (paylaşım eksik/ağ hatası) KPI'lar sıfır göstermez — "şu an alınamıyor" +
+  Tekrar Dene düğmesi.
+
+## Wishlist Detay Paneli — Sağdan Açılır, Salt-Okunur
+
+- Açılış kaynağı: Wishlist tablosunun görünen (filtrelenmiş/sıralanmış) satır sırası; önceki/
+  sonraki oklar o sırada gezinir (Detay Paneli'yle aynı desen, ayrı state).
+- Ayrı bir `google.script.run` çağrısı YAPMAZ — satır zaten `AppState.wishlist.rows`
+  önbelleğinde, panel doğrudan oradan okur (InfoModal ilkesi: hızlı bakış, ikinci bir okuma
+  açmaz).
+- İçerik "künye + neden + aksiyon" şablonunu izler (`detay-popup.md`): Kimlik bölümü (Üretici/
+  Model/Kategori/Ürün Grubu/Dia/VS Region/Proje Kodu/VS Part Number/Öncelik) → Ticari bölümü
+  (Site/Teknoloji/Launch Plan/Planlanan Ay/Rakip Marka-Ürün/3 bölgesel Hedef Fiyat/Order
+  Intake/Toplam VS Potansiyeli/Numune Durumu) → Durum & Aksiyon bölümü (Durum Rozeti + **ham**
+  `PROJECT STATUS` metni + Aksiyon + İptal/Tahsis Sebebi + Notlar) → varsa kaynak Google
+  Sheet'e "Sheet'te aç" linki.
+- **Düzenleme yok** — hiçbir alan tıklanabilir/aktifleştirilebilir değil (Detay Paneli'nin
+  `activateEdit`/`saveField` mekanizmasının hiçbiri burada kullanılmaz). Bir alan
+  düzenlenebilir olması gerekirse bu, Wishlist verisinin kendisinin çift yönlü hale
+  getirilmesi anlamına gelir — bu turun kapsamı dışında (kullanıcı yalnız görüntüleme istedi).
+- Kapatma: X düğmesi, Escape, veya scrim'e tıklama — Detay Paneli açıkken Wishlist Detay
+  Paneli açılamaz (ayrı sayfalar), ama ikisinin de kendi Escape/scrim mantığı var, kademeli
+  önceliklendirilmiş (`wireShell()`'de en üstteki katman önce kapanır).
+
 ## Detay Paneli (Drawer) — Sağdan Açılır
 
 - Açılış kaynağı: Parça Listesi'nin görünen (filtrelenmiş/sıralanmış) satır sırası veya
@@ -89,5 +139,6 @@
 - `T`/`t()` sözlüğü TR/EN; `document.documentElement.lang` dil değişince güncellenir; sayı/
   tarih biçimi (`toLocaleString`) dile göre `tr-TR`/`en-US` seçilir; Status/kilometre taşı
   gibi sabit değerler de `t()` kapsamında (StatusLex deseni).
-- ≤768px: sidebar gizlenir, bottom-nav (Dashboard, Liste) belirir; drawer tam genişliğe yakın
-  açılır (`min(520px,94vw)` zaten dar ekranda ekranın çoğunu kaplar).
+- ≤768px: sidebar gizlenir, bottom-nav (Dashboard, Liste, Wishlist) belirir; drawer tam
+  genişliğe yakın açılır (`min(520px,94vw)` zaten dar ekranda ekranın çoğunu kaplar) — hem
+  Detay Paneli hem Wishlist Detay Paneli için aynı ölçü.

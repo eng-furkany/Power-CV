@@ -30,6 +30,13 @@ turda yok).
 - Basit eşik-tabanlı risk rozeti (gecikmiş/geçmiş çeyrek, "Delay"/"Risk"/"On-hold" durumları).
 - Günlük otomatik risk taraması (zamanlanmış tetikleyici) + kullanım özeti.
 
+**2026-09 eklentisi — Wishlist ekranı:** aynı uygulamaya, ayrı bir Google Sheet'ten ("Live
+Wishlist - Clutch CV AMEAO + Europe") beslenen üçüncü, salt-okunur bir sayfa eklendi — KPI
+şeridi + 4 grafik + filtrelenebilir tam tablo + salt-okunur detay paneli (InfoModal deseni,
+Detay Paneli'nden farklı, düzenleme yok). Kullanıcı bunu "aynı uygulamaya yeni bir sayfa"
+olarak istedi (alternatif: ayrı bir Apps Script projesi — reddedildi). Detay: `TSD.md`
+"Wishlist" bölümü, `docs/layout-wishlist.md`.
+
 **Bu turda yok:**
 - Çoklu rol/yetki ayrımı (görüntüleyici/editör) — tek rol yeterli görüldü, gerekirse
   `yetki-gorunumu.md` deseniyle sonraki turda eklenir.

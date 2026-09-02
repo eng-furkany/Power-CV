@@ -131,6 +131,95 @@ için iki-kolon Launched kombinasyonları (yalnız Planned/ikisi de/hiçbiri), D
 geçmiş/gelecek çeyrek, Actual sonradan Launched olma; `computePlanYear_`/`computePlanQuarter_`
 için Planned→Actual→Launch Sheet öncelik sırası ve "hiçbiri yok" durumu.
 
+## Wishlist — İkinci Veri Kaynağı (Ayrı Google Sheet)
+
+Dashboard/Parça Listesi'nin okuduğu `Sheet1`'den **tamamen farklı** bir Google Sheet: kullanıcının
+paylaştığı "Live Wishlist - Clutch CV AMEAO + Europe" tablosu (sekme `LIVE WISHLIST CV`).
+Bu script'in bağlı olduğu Sheet DEĞİL — `SpreadsheetApp.openById(WISHLIST_SPREADSHEET_ID)` ile
+açılıyor, yani bu webapp'i çalıştıran her kullanıcının kendi Google hesabıyla o sheet'e en az
+görüntüleyici erişimi olması gerekiyor (paylaşım eksikse `getWishlistData()` `{error}` döner,
+istemci "şu an alınamıyor + Tekrar dene" gösterir — çökmez).
+
+```
+Kullanıcı ↔ view-wishlist (aynı Index/Stylesheet/JavaScript.html içinde)
+                 │  google.script.run getWishlistData()
+                 ▼
+            Code.gs  ──►  SpreadsheetApp.openById(WISHLIST_SPREADSHEET_ID)
+                              .getSheetByName('LIVE WISHLIST CV')
+```
+
+### Veri Modeli — Sabit Kolon Haritası
+
+Kaynak sheet'in gerçek yapısı: başlık **4. satırda** (bazı hücrelere Alt+Enter ile gömülü satır
+sonları var — CSV dışa aktarımında bunlar "çok satırlı başlık" gibi görünüyordu, gerçek yapı tek
+satır), veri **5. satırdan** başlıyor, toplam **95 sütun**. `Code.gs`'teki `WISHLIST_COLUMN_MAP`
+seçilen ~29 alanı **sabit kolon numarasına** göre okur (`Sheet1`'in `COLUMN_MAP`'iyle aynı desen)
+— başlık METNİNE göre değil, çünkü bazı başlıklar (`EUROPE`/`TMEAO`/`Americas`) sheet'te BİRDEN
+FAZLA farklı bölümde (CarPark / VS Potential / Specific Target Prices) tekrarlanıyor, bu da
+metin-eşlemeyi güvensiz kılıyor. Harita, kaynak sheet'in dışa aktarılmış bir kopyası tek tek
+incelenerek (2026-09) çıkarıldı ve gerçek veriye karşı Node.js'te doğrulandı (290 satır, sıfır
+sütun kayması). Sütunlar yeniden düzenlenirse `WISHLIST_COLUMN_MAP` elle güncellenmeli —
+`_wishlistVerifyHeader_()` bunu SESSİZCE yanlış okumak yerine üç sabit noktada (WL YEAR/VS
+Region/PROJECT STATUS başlıkları) doğrulayıp uyuşmazlıkta açık bir hata fırlatır (madde 2).
+
+| Alan | Kaynak kolon | Not |
+|---|---|---|
+| `wlYear`, `category` | B, C | boş satır tespiti bu ikisine bakar |
+| `productRange`, `dia`, `vsRegion` | F, G, H | |
+| `projectCode`, `vsPartNumber`, `prio`, `notes` | K, L, M, N | |
+| `manufacturer`, `model` | Q, R | |
+| `competitorBrand`, `competitorProduct` | X, Y | |
+| `totalVsPotential` | AK | **birim karışık** — bazı satırlarda hacim/adet, bazı satırlarda `TBD`/`-`/`?`; ham gösterilir, tek bir KPI'da toplanmaz |
+| `priceEurope`/`priceTmeao`/`priceAmericas` | BU, BV, BW | format tutarsız (TR virgül ondalık, R$ Brezilya Reali, nokta ondalık) — `Wishlist.gs` `parseWishlistPrice_` normalize eder |
+| `site`, `launchPlan`, `plannedMonth`, `projectStatusRaw`, `orderIntake` | CG, CH, CI, CJ, CK | |
+| `action`, `reasonCancelled`, `samplesAvailability`, `technology` | CN, CO, CP, CQ | |
+
+### PROJECT STATUS → `statusBucket` (StatusLex Deseni)
+
+Ham `projectStatusRaw` serbest metin (290 satırın 143'ü boş, geri kalanı onlarca varyant) —
+`Wishlist.gs` `wishlistStatusBucket_()` anahtar-kelime tabanlı (küçük/büyük harf duyarsız,
+alt-metin eşleşmesi) 6 sabit kategoriye indirger: `Launched` · `CA` · `InDevelopment` ·
+`CancelledOrNotAllocated` · `Unspecified` · `Other`. **Ham değere hiçbir yerde dokunulmaz** —
+yalnız bu türetilmiş alan KPI/grafik kategorizasyonu için kullanılır, detay panelinde ham metin
+ayrıca gösterilir (`dil-yerellestirme.md` `StatusLex` ilkesi, `Sheet1`'in `STATUS_LEX`'iyle aynı
+mantık). Gerçek veride ölçülen dağılım (290 satır): Unspecified 143 · InDevelopment 36 ·
+CancelledOrNotAllocated 53 · CA 25 · Launched 17 · Other 16.
+
+### Dikkat Rozeti (madde 7)
+
+```
+wishlistAttention_(row):
+  statusBucket == 'Launched'                                    → dikkat YOK
+  Launch Plan "Q#/YYYY" (veya "Q# YYYY") biçiminde VE o çeyrek
+    geçmişte                                                    → DİKKAT
+  aksi hâlde (çeyrek ayrıştırılamıyorsa dahil)                   → dikkat YOK
+```
+
+`Sheet1`'in `computeRiskLevel_`'ıyla aynı çeyrek-ayrıştırma mantığını (`Risk.gs`
+`parseQuarter_`) tekrar kullanmaz — Wishlist'in Launch Plan alanı ayrı bir format taşıdığı için
+(`Wishlist.gs` kendi `parseWishlistQuarter_`'ı) küçük bir kopya tutuluyor; iki sheet'in kolon
+anlamı farklı olduğundan ortak bir fonksiyona zorlanmadı.
+
+### API — `getWishlistData()`
+
+`_requireUser_()` ile başlar (madde 1). Satırları okur, her satıra `statusBucket`, `attention`,
+`priceEuropeNum`/`priceTmeaoNum`/`priceAmericasNum` (parse edilmiş fiyat, yoksa `null`) ekler,
+`{ ok:true, rows, updatedAt, sourceUrl }` döner. Dashboard'daki gibi **ayrı bir agregasyon uç
+noktası yok** — `JavaScript.html`'deki `computeWishlistAggregates()` istemci tarafında hesaplar
+(290 satır bu ölçekte tarayıcıda hesaplamak için küçük). Wishlist'in satır detay paneli de ayrı
+bir uç noktaya gitmez — `Sheet1`'in düzenlenebilir `getParcaDetay()`'inden farklı olarak
+salt-okunur olduğu için istemci önbelleğinden (`AppState.wishlist.rows`) okur.
+
+### Minimum Test İskeleti (madde 9)
+
+`tests/wishlist.test.js` — `tests/risk.test.js` ile aynı Node.js mock harness deseni, 32
+golden-value senaryosu: `wishlistStatusBucket_` (gerçek sheet'te görülen varyantlar dahil),
+`parseWishlistPrice_` (TR virgül/nokta ondalık/R$ Reali/boş-TBD-tire), `wishlistAttention_`
+(geçmiş/gelecek çeyrek, zaten Launched, ayrıştırılamayan format). Ayrıca kolon haritası, gerçek
+CSV dışa aktarımına karşı ayrı bir Node.js betiğiyle (bu depoda tutulmuyor, bir kerelik doğrulama)
+290 satır üzerinde sıfır sütun-kayması ile doğrulandı — sonuç bu dosyaya not düşüldü, testin
+kendisine değil (gerçek veri dosyası repoya girmiyor).
+
 ## Auth Modeli
 
 Web app dağıtımı "Yalnız bu tabloya erişimi olanlar" (Sheet paylaşım izinleriyle aynı çember)
