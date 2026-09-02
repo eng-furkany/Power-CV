@@ -444,14 +444,14 @@ function computeQuarterlyOI(rows, year) {
     runP += qPlanned[i]; plannedCumulative.push(runP);
     runA += qActual[i]; actualCumulative.push(runA);
   }
-  // Kullanıcı talebi: henüz başlamamış (gelecek) çeyrekler gösterilmesin —
-  // "Q4'te planlanan projeler henüz gerçekleşmediği için data yanıltıyor."
   // Bugünün tarihine göre seçili yıl için kaç çeyrek başlamış/geçmiş
-  // olduğunu hesaplıyoruz; ondan sonrası (henüz gerçekleşmeyen çeyrekler)
-  // grafikten VE başlıktaki Plan/Actual toplamlarından tamamen çıkarılıyor
-  // — hem Plan hem Actual "bugüne kadar" aynı dönemi kıyaslasın diye
-  // (önceki tasarım tüm yılın planını, henüz biten kısmi Actual'a karşı
-  // gösteriyordu — bu da farkı yapay şekilde büyütüyordu).
+  // olduğunu hesaplar. Kullanıcı talebi (2026-09-02, referans "POWER
+  // OFF-ROAD & BUS" görseli): Plan (B1) çizgisi TÜM YIL için çizilir, yalnız
+  // Actual çizgisi bu değere kadar (visibleQuarters) kesilir — henüz
+  // gerçekleşmemiş bir çeyrek için "Actual" göstermek yanıltıcı olur, ama
+  // Plan'ın tüm yıl boyunca görünür olması referans rapordaki gibi bir
+  // hedef çizgisi sağlar. Zamana bağlı: bu değer her render'da bugünün
+  // tarihinden yeniden hesaplanır, statik değildir.
   var now = new Date();
   var curYear = now.getFullYear();
   var curQuarter = Math.floor(now.getMonth() / 3) + 1;
@@ -540,18 +540,19 @@ function renderDashboard() {
   var oiCardHtml = '';
   if (qYear !== 'all') {
     var oiExpanded = !!AppState.dashboard.oiExpanded;
-    // Kullanıcı talebi: henüz gerçekleşmemiş (gelecek) çeyrekler grafikte
-    // gösterilmiyor — Plan/Actual başlık toplamları da tüm yıl yerine
-    // yalnız "bugüne kadar geçen" çeyrekleri kıyaslıyor (aksi halde 3
-    // çeyreklik Actual, 4 çeyreklik tüm-yıl Plan'a karşı yapay bir fark
-    // gösteriyordu).
+    // Kullanıcı talebi (2026-09-02, referans "POWER OFF-ROAD & BUS" görseli):
+    // Plan (B1) artık başlıkta ve grafikte TÜM YIL toplamı olarak gösterilir;
+    // yalnız Actual "bugüne kadar geçen" çeyreklerle sınırlı — ikisi farklı
+    // dönemleri kapsadığı için başlıkta hangi çeyreğe kadar Actual olduğu
+    // ayrıca belirtiliyor (Plan'a "(Q1–Qn)" gibi bir sınır eklemek artık
+    // yanlış olur, çünkü Plan tüm yılı kapsıyor).
     var vq = qData.visibleQuarters;
-    var oiTitle = qYear + ' ' + t('quarterlyOiTitle') + (vq > 0 && vq < 4 ? ' (Q1–Q' + vq + ')' : '');
+    var oiTitle = qYear + ' ' + t('quarterlyOiTitle');
     if (oiExpanded) {
-      // Kullanıcı talebi: Δ (fark) kısmı kaldırıldı, sade Plan/Actual yeterli.
-      var planTotal = vq > 0 ? qData.plannedCumulative[vq - 1] : 0;
+      var planTotal = qData.plannedCumulative[3] || 0;
       var actualTotal = vq > 0 ? qData.actualCumulative[vq - 1] : 0;
-      oiTitle += ' — ' + t('oiPlannedLabel') + ' ' + fmtEur(planTotal) + ' · ' + t('oiActualLabel') + ' ' + fmtEur(actualTotal);
+      var actualSuffix = (vq > 0 && vq < 4) ? ' (Q1–Q' + vq + ')' : '';
+      oiTitle += ' — ' + t('oiPlannedLabel') + ' ' + fmtEur(planTotal) + ' · ' + t('oiActualLabel') + actualSuffix + ' ' + fmtEur(actualTotal);
     }
     oiCardHtml = '<div class="card">' +
       '<div class="chart-hd">' +
@@ -808,39 +809,46 @@ function drawOiByTypeChart(oiByType) {
   });
 }
 
-// Çeyreklik kümülatif OI çizgisi — Plan (K kolonu) ile Actual (X kolonu,
-// kullanıcı talebi) iki ayrı çizgi olarak gösteriliyor: Plan kesikli/soluk,
-// Actual dolu/vurgulu — aradaki fark hem görsel olarak hem de üstteki
-// başlıkta (Δ) okunabiliyor. compact=true iken (varsayılan, sade görünüm
-// için) eksenler/legend gizlenir, yalnız iki renkli çizgi kalır; büyüt
-// düğmesine basılınca (compact=false) tam detay açılır.
+// Çeyreklik kümülatif OI çizgisi — referans "POWER OFF-ROAD & BUS" raporuyla
+// aynı mantık (kullanıcı talebi, 2026-09-02): Plan (B1, K kolonu) TÜM YIL
+// için çizilir — yılın planı baştan bilinir, gelecek çeyrekler için de
+// gösterilir. Actual (X kolonu, oiActual) ise yalnız BUGÜNE KADAR geçen
+// çeyreklere kadar çizilir, sonrası null bırakılır ki çizgi orada kesilsin
+// (henüz gerçekleşmemiş bir "Actual" göstermek yanıltıcı olur). Bu, önceki
+// tasarımdan (ikisi de aynı çeyreğe kesiliyordu) kasıtlı bir dönüş: kullanıcı
+// referans görselde Plan çizgisinin tüm yıl uzandığını, yalnız Actual'ın
+// bugüne kadar kısaldığını gösterdi. Zamana bağlı: her render'da bugünün
+// tarihine göre yeniden hesaplanır (bkz. computeQuarterlyOI/visibleQuarters),
+// Sheet'e yeni Actual girildikçe otomatik ilerler — statik değildir.
 function drawQuarterlyChart(qData, compact) {
   var canvas = document.getElementById('chart-quarterly');
   if (!canvas) return;
   var wrap = canvas.closest('.chart-canvas-wrap');
-  // Kullanıcı talebi: henüz gerçekleşmemiş (gelecek) çeyrekler grafikten
-  // tamamen çıkarılır — "Q4'te planlanan projeler henüz gerçekleşmediği
-  // için data yanıltıyor" — Plan çizgisi de dahil, yalnız bugüne kadar
-  // geçen çeyrekler çizilir.
   var vq = (qData.visibleQuarters != null) ? qData.visibleQuarters : 4;
-  if (vq <= 0) { showChartNoData(wrap, canvas); return; }
+  var hasPlan = qData.plannedCumulative.some(function (v) { return v; });
+  var hasActual = qData.actualCumulative.some(function (v) { return v; });
+  if (!hasPlan && !hasActual) { showChartNoData(wrap, canvas); return; }
   showCanvas(wrap, canvas);
   if (AppState.charts.quarterly) AppState.charts.quarterly.destroy();
   var palette = chartPalette();
   var plannedColor = cssVar('--muted') || '#94a3b8';
   var actualColor = palette[0];
+  // Actual, vq'dan sonrası için null — Chart.js null noktalarda çizgiyi
+  // keser (spanGaps: false, varsayılan), tam istediğimiz "bugüne kadar"
+  // görünümü.
+  var actualData = qData.actualCumulative.map(function (v, i) { return i < vq ? v : null; });
   AppState.charts.quarterly = new Chart(canvas.getContext('2d'), {
     type: 'line',
     data: {
-      labels: ['Q1', 'Q2', 'Q3', 'Q4'].slice(0, vq),
+      labels: ['Q1', 'Q2', 'Q3', 'Q4'],
       datasets: [
         {
-          label: t('oiPlannedLabel'), data: qData.plannedCumulative.slice(0, vq),
+          label: t('oiPlannedLabel'), data: qData.plannedCumulative,
           borderColor: plannedColor, backgroundColor: plannedColor, borderDash: [6, 4],
           pointRadius: 3, pointHoverRadius: 5, borderWidth: 2, tension: 0.25, fill: false
         },
         {
-          label: t('oiActualLabel'), data: qData.actualCumulative.slice(0, vq),
+          label: t('oiActualLabel'), data: actualData,
           borderColor: actualColor, backgroundColor: actualColor,
           pointRadius: 4, pointHoverRadius: 6, borderWidth: 2.5, tension: 0.25, fill: false
         }
