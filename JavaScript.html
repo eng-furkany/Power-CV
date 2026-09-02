@@ -369,7 +369,15 @@ function computeDashboardAggregates(rows) {
 
   rows.forEach(function (r) {
     totalVolume += Number(r.volume) || 0;
-    totalEur += Number(r.eur) || 0;
+    // Kullanıcı bulgusu (2026-09-02): "Total EUR" KPI'sı önceden AB (eur)
+    // kolonunu topluyordu — TSD.md'ye göre bu kolon "N eklenince AA'dan
+    // kaydı", yani yalnız Status Actual (N) doldurulunca değer alıyor. Bu
+    // yüzden henüz gerçekleşmemiş (2027/2028 gibi) yıllarda hep 0 gösteriyordu.
+    // Kullanıcı talebi: bu kartta projenin gerçekleşip gerçekleşmediğinden
+    // BAĞIMSIZ olarak OI (K kolonu) gösterilsin — OI zaten € cinsinden bir
+    // sipariş değeri (bkz. Order Intake grafikleri) ve her satırda planlama
+    // aşamasından itibaren mevcuttur.
+    totalEur += Number(r.oi) || 0;
     if (isRowLaunched(r)) launchedCount++;
     if (r.riskLevel === 'risk' || r.riskLevel === 'gecikme') { riskCount++; riskRows.push(r); }
 
