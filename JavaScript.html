@@ -426,6 +426,7 @@ function loadDashboard(force) {
   ensureRowsLoaded(force, function (err) {
     if (err) {
       root.innerHTML = '<div class="chart-error">' + icon('alertTriangle', 22) + '<div>' + t('loadError') + '</div>' +
+        '<div class="text-muted" style="font-size:var(--fs-xs);margin-top:4px;">' + escHtml(err) + '</div>' +
         '<button class="btn btn-outlined" onclick="loadDashboard(true)">' + icon('refreshCw', 14) + ' ' + t('retry') + '</button></div>';
       return;
     }
@@ -888,6 +889,7 @@ function loadListe(force) {
   ensureRowsLoaded(force, function (err) {
     if (err) {
       root.innerHTML = '<div class="chart-error">' + icon('alertTriangle', 22) + '<div>' + t('loadError') + '</div>' +
+        '<div class="text-muted" style="font-size:var(--fs-xs);margin-top:4px;">' + escHtml(err) + '</div>' +
         '<button class="btn btn-outlined" onclick="loadListe(true)">' + icon('refreshCw', 14) + ' ' + t('retry') + '</button></div>';
       return;
     }
@@ -1159,6 +1161,7 @@ function loadWishlist(force) {
   ensureWishlistRowsLoaded(force, function (err) {
     if (err) {
       root.innerHTML = '<div class="chart-error">' + icon('alertTriangle', 22) + '<div>' + t('loadError') + '</div>' +
+        '<div class="text-muted" style="font-size:var(--fs-xs);margin-top:4px;">' + escHtml(err) + '</div>' +
         '<button class="btn btn-outlined" onclick="loadWishlist(true)">' + icon('refreshCw', 14) + ' ' + t('retry') + '</button></div>';
       return;
     }
@@ -1589,6 +1592,7 @@ function loadDrawerRecord(pn) {
     renderDrawer();
   }, function (err) {
     body.innerHTML = '<div class="chart-error">' + icon('alertTriangle', 22) + '<div>' + t('loadError') + '</div>' +
+      '<div class="text-muted" style="font-size:var(--fs-xs);margin-top:4px;">' + escHtml(err) + '</div>' +
       '<button class="btn btn-outlined" onclick="loadDrawerRecord(\'' + pn.replace(/'/g, "\\'") + '\')">' + icon('refreshCw', 14) + ' ' + t('retry') + '</button></div>';
   });
 }
